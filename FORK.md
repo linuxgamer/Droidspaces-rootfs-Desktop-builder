@@ -96,6 +96,21 @@ The packages are built and published by this fork:
 Other compositors (GNOME, Niri, Hyprland, Mango, Denial, Anland Next) still have no Fedora 45
 packages, so the capability matrix grants Fedora 45 Wayland to KDE-style desktops only.
 
+Verified end to end with a real build (`Fedora-45`, desktop `KDE`, backend `anland-wayland`,
+releases disabled). The image log shows the installer detecting the system, selecting
+`anland-kde-fedora45-kwin-6.8.2-aarch64.tar.gz` from this fork's release, installing the four
+RPMs and locking them:
+
+```
+[anland-kde] Detected system: Fedora Linux 45 (Container Image) -> Fedora 45
+[anland-kde] Selected anland-kde-fedora45-kwin-6.8.2-aarch64.tar.gz
+[anland-kde] Installation complete; patched KWin/Xwayland packages are now locked.
+```
+
+One packaging trap worth remembering: the archive must start at
+`anland-kde-packages/<distro>/` with no bare `anland-kde-packages/` entry, because the
+installer rejects any member outside the target directory.
+
 ## Pinned versions
 
 `mesa_version` and `anland_package_revision` default to empty, which means each build takes
