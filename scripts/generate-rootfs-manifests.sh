@@ -120,6 +120,6 @@ for path in "$ASSETS_DIR"/*.tar.xz; do
   entries="$(jq --argjson entry "$entry" '. + [$entry]' <<<"$entries")"
   count=$((count + 1))
 done
-(( count == 32 )) || { echo "Expected 32 $LANGUAGE assets, found $count" >&2; exit 1; }
+(( count == 34 )) || { echo "Expected 34 $LANGUAGE assets, found $count" >&2; exit 1; }
 mkdir -p "${OUTPUT%/*}"
 jq 'sort_by(.distro, .name, .architecture)' <<<"$entries" > "$OUTPUT"

@@ -98,7 +98,7 @@ desktop_backend_supported() {
             ;;
         kde:anland-wayland|kde-mobile:anland-wayland)
             case "$target" in
-                Debian-13|Ubuntu-26|Fedora-44|Arch) return 0 ;;
+                Debian-13|Ubuntu-26|Fedora-44|Fedora-45|Arch) return 0 ;;
                 *) return 1 ;;
             esac
             ;;
@@ -120,7 +120,12 @@ desktop_backend_supported() {
 
 desktop_wayland_targets_json() {
     case "${1:-}" in
-        kde|kde-mobile|anland-next)
+        kde|kde-mobile)
+            # Fedora 45 Anland packages exist for KWin only, so just KDE-style desktops
+            # include it; the other compositors have no Fedora 45 build yet.
+            printf '%s\n' '["Debian-13","Ubuntu-26","Fedora-44","Fedora-45","Arch"]'
+            ;;
+        anland-next)
             printf '%s\n' '["Debian-13","Ubuntu-26","Fedora-44","Arch"]'
             ;;
         gnome|niri|hyprland|mango|denial)

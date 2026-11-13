@@ -58,8 +58,9 @@ and `Arch`. This fork drops `Ubuntu-25` (an interim release, past its 9-month wi
 X11-only here) and `Fedora-43` (out of support now that Fedora 45 is current), and adds
 `Fedora-45` as an X11-only target.
 
-The all-desktop matrix is four targets times eight desktops, so the manifest generator expects
-32 assets per language instead of 40.
+The all-desktop matrix is no longer uniform: KDE and KDE mobile build five targets (they
+include Fedora 45), the other six desktops build four, so the manifest generator expects 34
+assets per language.
 
 ### How Fedora 45 was added
 
@@ -70,29 +71,30 @@ release from `linuxgamer/droidspaces-package`: `distribute-mesa.yml` gained the
 (`DROIDSPACES_MESA_REPOSITORY`) while Anland, systemd257 and Wine still come from upstream
 through `DROIDSPACES_COMPONENT_REPOSITORY`.
 
-Fedora 45 has no Anland packages yet — no `producers/*/Fedora45_*` recipe exists in the Anland
-source and no `fedora45` asset exists in any upstream release — so Wayland/Anland is
-deliberately absent from the capability matrix. Adding it needs patched KWin/Mutter builds for
-Fedora 45, which is a separate project spanning `SuperTurtleDev/anland` and
-`droidspaces-package`.
-
 Ubuntu 26.10 is deliberately not added, decided with the maintainer: it is an interim release
 with nine months of support while Ubuntu 26.04 LTS is already covered with both Mesa and
 Anland packages. Ubuntu targets stay at 24.04 and 26.04.
 
 ### Fedora 45 Anland status
 
-The decisive check has been run: the KWin patch from the `Fedora44_v5` recipe applies to the
-KWin 6.8.2 source that Fedora 45 ships (`patch --dry-run` succeeds, with offsets). Fedora 44
-and Fedora 45 carry the same KWin version, which is why the patch set transfers. The Xwayland
-patch in that recipe is a 31-byte stub rather than a real patch, and Xwayland is only rebuilt
-when the recipe opts in, so it does not block anything.
+Fedora 45 now has full Anland Wayland support for the KDE-style desktops (`KDE`, `KDE
+mobile`). Fedora 44 and Fedora 45 ship the same KWin 6.8.2, so the Anland patch set from the
+`Fedora44_v5` recipe applies unchanged.
 
-What remains for Fedora 45 Wayland support is packaging, not patching: add a
-`producers/kde/Fedora45_v5` recipe in a fork of `SuperTurtleDev/anland` (the Fedora 44 recipe
-with the version gate changed to 45), build the patched KWin for Fedora 45, publish it as a
-`fedora45` asset in `anland-kde-packages`, and only then add Fedora 45 to the Wayland lists in
-`scripts/lib/desktop-config.sh`. Until that lands, Fedora 45 stays X11-only on purpose.
+The packages are built and published by this fork:
+
+1. `linuxgamer/anland` carries `producers/kde/Fedora45_v5` (the Fedora 44 recipe with the
+   version gate moved to 45, the `kwin` symlink replaced by a direct path, the root guard
+   relaxed for CI, and RPM validation that checks digests without requiring a signature,
+   which a CI container cannot produce). `build-fedora45-kwin.yml` builds it in a `fedora:45`
+   container.
+2. `linuxgamer/droidspaces-package` publishes `anland-kde-fedora45-kwin-6.8.2-aarch64.tar.gz`
+   plus a manifest containing only the `fedora45` key.
+3. `install-anland-kde.sh` resolves the manifest and archive from this fork's release for
+   Fedora 45 only; every other distribution keeps reading upstream, so no mirror can go stale.
+
+Other compositors (GNOME, Niri, Hyprland, Mango, Denial, Anland Next) still have no Fedora 45
+packages, so the capability matrix grants Fedora 45 Wayland to KDE-style desktops only.
 
 ## Pinned versions
 
