@@ -4,7 +4,7 @@
 
 ## Subscribe to the rolling desktop feed
 
-In Droidspaces repository management, add [Chinese RootFS (GitHub)](https://github.com/Goldzxcbug/Droidspaces-rootfs-Desktop-builder/releases/download/droidspaces-rootfs-all-wayland/rootfs_zh.json), [Chinese RootFS (CNB)](https://cnb.cool/goldzxcbug/droidspaces-package/-/releases/download/droidspaces-rootfs-all-wayland/rootfs_zh.json), or [English RootFS (GitHub)](https://github.com/Goldzxcbug/Droidspaces-rootfs-Desktop-builder/releases/download/droidspaces-rootfs-all-wayland/rootfs_en.json). Each Chinese index uses download URLs from its own source. The GitHub rolling release updates weekly and includes every Anland Wayland desktop for Debian 13, Ubuntu 26, Fedora 43/44, and Arch. CNB synchronization is disabled by default, so it may lag behind GitHub. When manually running the all-desktop Wayland RootFS workflow, enable `sync_cnb` to sync after building, or use `sync_cnb_only` to sync an existing release.
+In Droidspaces repository management, add [Chinese RootFS](https://github.com/linuxgamer/Droidspaces-rootfs-Desktop-builder/releases/download/droidspaces-rootfs-all-wayland/rootfs_zh.json) or [English RootFS](https://github.com/linuxgamer/Droidspaces-rootfs-Desktop-builder/releases/download/droidspaces-rootfs-all-wayland/rootfs_en.json). Each index uses download URLs from this repository's own release. The rolling release updates weekly and includes every Anland Wayland desktop for Debian 13, Ubuntu 26, Fedora 43/44, and Arch. Both feeds appear after the first all-desktop run creates the rolling release.
 
 ## 1. Build with GitHub Actions
 

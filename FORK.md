@@ -4,8 +4,8 @@ This repository is an **English-first fork** of
 [Goldzxcbug/Droidspaces-rootfs-Desktop-builder](https://github.com/Goldzxcbug/Droidspaces-rootfs-Desktop-builder).
 Upstream is MIT-licensed; this fork keeps the same licence and attribution (see [LICENSE](LICENSE)).
 
-The goal is to keep upstream's engineering untouched while making English the default
-language for readers, Actions users, and future maintainers.
+The goal is to keep upstream's engineering while making English the default language for
+readers, Actions users, and future maintainers.
 
 ## What differs from upstream
 
@@ -15,11 +15,11 @@ language for readers, Actions users, and future maintainers.
 | Script guide | `scripts/README.md` (Chinese) + `scripts/README_english.md` | `scripts/README.md` (English) + `scripts/README_zh.md` |
 | Docs | `docs/zh/` and `docs/en/` | same, with `docs/en/` as the primary set |
 | Release workflow | `build-rootfs-releases.yml` (Chinese) **and** `build-rootfs-releases-en.yml` (English) | a single `build-rootfs-releases.yml`, using the English preset defaults |
+| Release feeds | point at the upstream repository's releases | point at **this** repository's releases |
 | Code comments | Chinese | English |
 
-Nothing else is changed: build logic, installers, package lists, workflow behaviour and input
-defaults are upstream's. The one behavioural delta is that the canonical release workflow now
-carries the **English preset** defaults that upstream ships in `build-rootfs-releases-en.yml`:
+The canonical release workflow carries the **English preset** defaults that upstream ships in
+`build-rootfs-releases-en.yml`:
 
 - `ui_language: en`
 - `use_chinese: false` (Chinese locale and Asia/Shanghai timezone stay opt-in)
@@ -31,6 +31,27 @@ Upstream's bilingual runtime strings are deliberately preserved. Installers call
 `msg '中文' 'English'`, `log "中文" "English"` and `die "中文" "English"`, picking the second
 string unless the locale is `zh*`. Keeping both halves means Chinese still works for `zh`
 locales, and it keeps merges with upstream small.
+
+## Release feeds point at this repository
+
+The subscription indexes (`rootfs_zh.json`, `rootfs_en.json`) and the documentation that
+describes them reference `linuxgamer/Droidspaces-rootfs-Desktop-builder`, not upstream. They
+resolve only after the first **Publish All-Desktop Wayland RootFS** run creates the rolling
+release; until then the links return 404.
+
+The CNB mirror link was dropped: CNB publishing targets upstream's account, and `sync_cnb` is
+disabled by default.
+
+Dependency repositories are intentionally still upstream: `Goldzxcbug/droidspaces-package`
+(the Anland/Mesa/media-decode packages), `lfdevs/mesa-for-android-container`,
+`Re-s/droidspaces-media-decode`, and `Yizhou147/Droidspaces-USB-Manager`. Those host the
+binaries the build downloads; repointing them would break builds.
+
+One consequence worth knowing: the in-image toolchain updates itself from
+`Goldzxcbug/droidspaces-package` (`DROIDSPACES_TUI_REPOSITORY`, `DROIDSPACES_COMPONENT_*`).
+Running "update TUI" inside the image therefore installs *upstream's* scripts, not this
+fork's. To make the fork fully self-contained you would publish your own TUI/component
+release and point those variables at it.
 
 ## Syncing with upstream
 
@@ -75,6 +96,9 @@ Only four kinds of conflicts are expected:
    upstream's code, re-apply the English comment. Comment-only conflicts are safe: the code
    on both sides is identical.
 
+Release-feed URLs will also conflict if upstream rewrites them: keep the `linuxgamer/...`
+versions from this fork.
+
 After resolving, re-run the checks in [Verifying changes](#verifying-changes).
 
 ## Verifying changes
@@ -90,19 +114,18 @@ bash tools/verify.sh
 ```
 
 `tools/check-translation.pl` lists any remaining Chinese outside `README.zh.md`,
-`scripts/README_zh.md` and `docs/zh/`, ignoring the intentional upstream `msg/log/die`
+`scripts/README_zh.md` and `docs/zh/`, ignoring the intentional `msg/log/die`
 Chinese/English pairs. A clean run prints `OK`.
 
-`tools/verify.sh` runs `bash -n` over every shell script and loads every workflow with a YAML
-parser. It needs `python3`; it installs nothing.
+`tools/verify.sh` runs `bash -n` over every shell script, loads every workflow with a YAML
+parser, and checks relative documentation links. It needs `python3`; it installs nothing.
 
-The real proof is still a build: workflow changes are only exercised by running
+The real proof is still a build: workflow and Dockerfile changes are only exercised by running
 **Build and Release Droidspaces RootFS** from the Actions tab (or
-**Build All-Desktop Wayland RootFS** for the rolling release). Do that before announcing a
+**Publish All-Desktop Wayland RootFS** for the rolling release). Do that before announcing a
 release.
 
 ## Keeping this file current
 
 When you change what the fork does differently (rename a file, drop a workflow, flip a
-default), update the table above in the same commit. That table is what makes the next sync
-predictable.
+default, repoint a feed), update the table above in the same commit.
