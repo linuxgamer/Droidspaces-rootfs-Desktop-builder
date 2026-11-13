@@ -1,0 +1,79 @@
+name: Publish TUI assets
+
+# Publishes this fork's toolkit as the release that install-tui.sh and droidspaces-tui.sh
+# update from. Without it, "update TUI" inside an image pulls upstream's Chinese scripts
+# and silently overwrites the English ones.
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/tui/install-*.sh'
+      - 'scripts/tui/droidspaces-tui.sh'
+      - 'scripts/tui/droidspaces-gpu.sh'
+      - 'scripts/generate-tui-manifest.sh'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: publish-tui
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Publish TUI release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.sha }}
+
+      - name: Generate manifest
+        run: |
+          set -euo pipefail
+          bash scripts/generate-tui-manifest.sh \
+            scripts/tui \
+            Gold-bug-tui \
+            "${{ github.sha }}" \
+            > "$RUNNER_TEMP/Gold-bug-tui-manifest"
+          echo "--- manifest ---"
+          cat "$RUNNER_TEMP/Gold-bug-tui-manifest"
+
+      - name: Verify manifest matches the assets
+        run: |
+          set -euo pipefail
+          manifest="$RUNNER_TEMP/Gold-bug-tui-manifest"
+          # Every listed asset must exist with the recorded size; a mismatch would make the
+          # installed TUI reject the update.
+          while IFS=$'\t' read -r sha size role target asset; do
+            [[ "$sha" == "sha256" ]] && continue
+            [[ -f "scripts/tui/$asset" ]] || { echo "missing asset: $asset" >&2; exit 1; }
+            actual_size="$(wc -c < "scripts/tui/$asset" | tr -d ' ')"
+            [[ "$actual_size" == "$size" ]] || { echo "size mismatch: $asset" >&2; exit 1; }
+          done < "$manifest"
+          echo "manifest consistent with assets"
+
+      - name: Publish release assets
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: Gold-bug-tui
+        run: |
+          set -euo pipefail
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Updating existing release $TAG"
+            gh release edit "$TAG" --notes "Toolkit assets published from $(git rev-parse --short "${{ github.sha }}") on $(date -u +%Y-%m-%dT%H:%M:%SZ)."
+          else
+            echo "Creating release $TAG"
+            gh release create "$TAG" \
+              --title "Droidspaces TUI" \
+              --notes "Toolkit assets for this fork: the TUI, the GPU helper, and the managed installers. install-tui.sh and droidspaces-tui.sh update from this release."
+          fi
+
+          assets=(scripts/tui/droidspaces-tui.sh scripts/tui/droidspaces-gpu.sh)
+          for path in scripts/tui/install-*.sh; do
+            assets+=("$path")
+          done
+          gh release upload "$TAG" "${assets[@]}" "$RUNNER_TEMP/Gold-bug-tui-manifest" --clobber
+          echo "uploaded ${#assets[@]} assets plus the manifest"

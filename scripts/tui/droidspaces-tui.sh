@@ -17,14 +17,14 @@ readonly COMPONENT_CNB_DOWNLOAD_BASE="${DROIDSPACES_COMPONENT_CNB_BASE:-https://
 readonly COMPONENT_MANIFEST_MAX_BYTES=$((1024 * 1024))
 readonly COMPONENT_VERSION_TIMEOUT=10
 readonly INSTALLED_TUI_PATH="/usr/local/bin/droidspaces-tui"
-readonly TUI_RELEASE_REPOSITORY="${DROIDSPACES_TUI_REPOSITORY:-Goldzxcbug/droidspaces-package}"
+readonly TUI_RELEASE_REPOSITORY="${DROIDSPACES_TUI_REPOSITORY:-linuxgamer/Droidspaces-rootfs-Desktop-builder}"
 readonly TUI_RELEASE_TAG="Gold-bug-tui"
 readonly TUI_BOOTSTRAP_NAME="install-tui.sh"
 readonly TUI_MANIFEST_NAME="Gold-bug-tui-manifest"
 readonly TUI_GITHUB_API_URL="${DROIDSPACES_TUI_API_URL:-https://api.github.com}"
 readonly TUI_GITHUB_DOWNLOAD_BASE="${DROIDSPACES_TUI_GITHUB_BASE:-https://github.com/$TUI_RELEASE_REPOSITORY/releases/download}"
 readonly TUI_PROXY_DOWNLOAD_BASE="${DROIDSPACES_TUI_PROXY_BASE:-https://gh-proxy.com/https://github.com/$TUI_RELEASE_REPOSITORY/releases/download}"
-readonly TUI_CNB_DOWNLOAD_BASE="${DROIDSPACES_TUI_CNB_BASE:-https://cnb.cool/goldzxcbug/droidspaces-package/-/releases/download}"
+readonly TUI_CNB_DOWNLOAD_BASE="${DROIDSPACES_TUI_CNB_BASE:-https://cnb.cool/$TUI_RELEASE_REPOSITORY/-/releases/download}"
 readonly LINUXMIRRORS_SCRIPT_URL="https://linuxmirrors.cn/main.sh"
 
 UI_LANG="en"
