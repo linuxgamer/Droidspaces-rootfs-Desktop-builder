@@ -55,18 +55,29 @@ networking/hardware services the images exist for.
 
 Upstream builds `Debian-13`, `Ubuntu-24`, `Ubuntu-25`, `Ubuntu-26`, `Fedora-43`, `Fedora-44`
 and `Arch`. This fork drops `Ubuntu-25` (an interim release, past its 9-month window, and
-X11-only here) and `Fedora-43` (out of support now that Fedora 45 is current).
+X11-only here) and `Fedora-43` (out of support now that Fedora 45 is current), and adds
+`Fedora-45` as an X11-only target.
 
-They are not replaced yet, and that is deliberate: the prebuilt Mesa and Anland packages in
-`Goldzxcbug/droidspaces-package` exist only for `debian_trixie`, `ubuntu_noble`,
-`ubuntu_questing`, `ubuntu_resolute`, `fedora_43`, `fedora_44` and `archlinux`. There are no
-assets at all for Fedora 45/46 or Ubuntu 26.10, and `install-mesa.sh` aborts on an unknown
-system rather than degrading quietly. Adding a target with the same GPU and Anland Wayland
-support therefore needs new package builds upstream or in this fork first — a Dockerfile alone
-would produce an image that fails during the build.
+The all-desktop matrix is four targets times eight desktops, so the manifest generator expects
+32 assets per language instead of 40.
 
-The all-desktop matrix is now four targets times eight desktops, so the manifest generator
-expects 32 assets per language instead of 40.
+### How Fedora 45 was added
+
+The Mesa project publishes a `fedora_45` archive, but upstream's distribution release
+(`Goldzxcbug/droidspaces-package`) does not forward it. This fork distributes its own Mesa
+release from `linuxgamer/droidspaces-package`: `distribute-mesa.yml` gained the
+`*_fedora_45_arm64.tar.gz` pattern, and `install-mesa.sh` now reads Mesa from that repository
+(`DROIDSPACES_MESA_REPOSITORY`) while Anland, systemd257 and Wine still come from upstream
+through `DROIDSPACES_COMPONENT_REPOSITORY`.
+
+Fedora 45 has no Anland packages yet — no `producers/*/Fedora45_*` recipe exists in the Anland
+source and no `fedora45` asset exists in any upstream release — so Wayland/Anland is
+deliberately absent from the capability matrix. Adding it needs patched KWin/Mutter builds for
+Fedora 45, which is a separate project spanning `SuperTurtleDev/anland` and
+`droidspaces-package`.
+
+Ubuntu 26.10 is not added: it is an interim release with nine months of support, and Ubuntu
+26.04 LTS is already covered. Revisit it only if there is a reason to.
 
 ## Pinned versions
 

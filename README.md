@@ -31,7 +31,7 @@ Subscribe to the rolling desktop feed in Droidspaces: [Chinese RootFS](https://g
 
 ## Targets
 
-`Debian-13`, `Ubuntu-24`, `Ubuntu-26`, `Fedora-44`, and `Arch`. GNOME, Niri, Hyprland, Mango, and Denial are available on Debian 13, Ubuntu 26, Fedora 44, and Arch Linux ARM. See the [build options guide](docs/en/build-options.md) for desktop and display-backend compatibility.
+`Debian-13`, `Ubuntu-24`, `Ubuntu-26`, `Fedora-44`, `Fedora-45`, and `Arch`. GNOME, Niri, Hyprland, Mango, and Denial are available on Debian 13, Ubuntu 26, Fedora 44, and Arch Linux ARM. See the [build options guide](docs/en/build-options.md) for desktop and display-backend compatibility.
 
 ## Acknowledgements
 

@@ -13,6 +13,7 @@ on:
           - Ubuntu-24
           - Ubuntu-26
           - Fedora-44
+          - Fedora-45
           - Arch
           - all
           - all-wayland
@@ -143,6 +144,11 @@ on:
         required: false
         type: string
         default: ''
+      publish_release:
+        description: Publish the built image as a Release (disable for a validation build)
+        required: false
+        type: boolean
+        default: true
 
 permissions:
   contents: write
@@ -176,3 +182,4 @@ jobs:
       wayland_package_repository: ${{ inputs.wayland_package_repository }}
       mesa_version: ${{ inputs.mesa_version }}
       anland_package_revision: ${{ inputs.anland_package_revision }}
+      publish_release: ${{ inputs.publish_release }}

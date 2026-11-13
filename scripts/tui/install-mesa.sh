@@ -7,7 +7,10 @@ set -euo pipefail
 # Installs ARM64 Mesa builds for Android containers.
 # Also installs the MediaCodec VA-API driver published by droidspaces-media-decode.
 # Selects the Mesa archive format and package manager from /etc/os-release.
-readonly RELEASE_REPOSITORY="Goldzxcbug/droidspaces-package"
+# Mesa comes from this fork's distribution release: upstream's distribution predates the
+# Fedora 45 archive, while the Mesa project publishes one. Other components (Anland,
+# systemd257, Wine) still come from upstream through DROIDSPACES_COMPONENT_REPOSITORY.
+readonly RELEASE_REPOSITORY="${DROIDSPACES_MESA_REPOSITORY:-linuxgamer/droidspaces-package}"
 readonly CNB_RELEASE_REPOSITORY="goldzxcbug/droidspaces-package"
 readonly DISTRIBUTION_TAG="mesa-for-android-container"
 readonly DISTRIBUTION_MANIFEST_NAME="mesa-distribution-manifest"
@@ -121,7 +124,7 @@ mesa_archive_version() {
         *_ubuntu_noble_arm64.tar.gz) version="${version%_ubuntu_noble_arm64.tar.gz}" ;;
         *_ubuntu_questing_arm64.tar.gz) version="${version%_ubuntu_questing_arm64.tar.gz}" ;;
         *_ubuntu_resolute_arm64.tar.gz) version="${version%_ubuntu_resolute_arm64.tar.gz}" ;;
-        *_fedora_43_arm64.tar.gz) version="${version%_fedora_43_arm64.tar.gz}" ;;
+        *_fedora_45_arm64.tar.gz) version="${version%_fedora_45_arm64.tar.gz}" ;;
         *_fedora_44_arm64.tar.gz) version="${version%_fedora_44_arm64.tar.gz}" ;;
         *) return 1 ;;
     esac
@@ -485,21 +488,21 @@ detect_target() {
             ;;
         fedora)
             case "$version_id" in
-                43*)
-                    TARGET="Fedora 43"
-                    PACKAGE_MANAGER="dnf"
-                    ARCHIVE_KIND="tar.gz"
-                    ASSET_PATTERN='^mesa-for-android-container_[^/]+_fedora_43_arm64\.tar\.gz$'
-                    ;;
                 44*)
                     TARGET="Fedora 44"
                     PACKAGE_MANAGER="dnf"
                     ARCHIVE_KIND="tar.gz"
                     ASSET_PATTERN='^mesa-for-android-container_[^/]+_fedora_44_arm64\.tar\.gz$'
                     ;;
+                45*)
+                    TARGET="Fedora 45"
+                    PACKAGE_MANAGER="dnf"
+                    ARCHIVE_KIND="tar.gz"
+                    ASSET_PATTERN='^mesa-for-android-container_[^/]+_fedora_45_arm64\.tar\.gz$'
+                    ;;
                 *)
-                    die "不支持当前系统 ${system_name}。仅支持 Fedora 43/44。" \
-                        "Unsupported system: ${system_name}. Only Fedora 43/44 are supported."
+                    die "不支持当前系统 ${system_name}。仅支持 Fedora 44/45。" \
+                        "Unsupported system: ${system_name}. Only Fedora 44/45 are supported."
                     ;;
             esac
             ;;

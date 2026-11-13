@@ -48,7 +48,7 @@ display_backend_label() {
 
 target_is_known() {
     case "${1:-}" in
-        Debian-13|Ubuntu-24|Ubuntu-26|Fedora-44|Arch) return 0 ;;
+        Debian-13|Ubuntu-24|Ubuntu-26|Fedora-44|Fedora-45|Arch) return 0 ;;
         *) return 1 ;;
     esac
 }
@@ -92,7 +92,7 @@ desktop_backend_supported() {
         none:x11) return 0 ;;
         kde:x11)
             case "$target" in
-                Debian-13|Ubuntu-24|Ubuntu-26|Fedora-44) return 0 ;;
+                Debian-13|Ubuntu-24|Ubuntu-26|Fedora-44|Fedora-45) return 0 ;;
                 *) return 1 ;;
             esac
             ;;
