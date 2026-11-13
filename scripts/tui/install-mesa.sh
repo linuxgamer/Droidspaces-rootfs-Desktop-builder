@@ -46,6 +46,9 @@ DOWNLOAD_URL=""
 DOWNLOAD_SOURCE=""
 SKIP_SOURCE_PROBE=false
 MESA_MANIFEST_FILE=""
+# Non-empty when the caller pins an exact Mesa version (e.g. from a workflow input),
+# which selects that asset from the version catalogue instead of prompting.
+MESA_VERSION_PIN=""
 AUTHORITATIVE_MANIFEST_FILE=""
 OFFICIAL_DOWNLOAD_URL=""
 EXPECTED_ARCHIVE_SIZE=""
@@ -140,6 +143,7 @@ $(msg '用法' 'Usage'): $0
   -3, --3       $(msg '使用 CNB 国内镜像并跳过测速。' 'Use the CNB mirror and skip latency checks.')
   --uninstall   $(msg '卸载自定义驱动并恢复发行版 Mesa' 'Uninstall custom drivers and restore distribution Mesa')
   --choose-version  $(msg '交互选择 Mesa 版本' 'Choose a Mesa version interactively')
+  --mesa-version <ver>  $(msg '固定 Mesa 版本，无需交互' 'Pin an exact Mesa version, non-interactive')
   --mesa-only   $(msg '只操作 Mesa 驱动' 'Operate on Mesa only')
   --media-only  $(msg '只操作最新媒体解码驱动' 'Operate on the latest media decode driver only')
   -h, --help    $(msg '显示此帮助。' 'Show this help.')
@@ -160,6 +164,7 @@ set_download_source_argument() {
 
 parse_arguments() {
     local argument
+    local want_mesa_version_value=false
 
     for argument in "$@"; do
         case "$argument" in
@@ -176,6 +181,12 @@ parse_arguments() {
                 UNINSTALL=true
                 ;;
             --choose-version) CHOOSE_VERSION=true ;;
+            --mesa-version)
+                want_mesa_version_value=true
+                ;;
+            --mesa-version=*)
+                MESA_VERSION_PIN="${argument#--mesa-version=}"
+                ;;
             --mesa-only)
                 [[ "$INSTALL_SCOPE" != media ]] || die '不能同时选择两种单独安装模式。' 'Conflicting component modes.'
                 INSTALL_SCOPE=mesa ;;
@@ -187,11 +198,25 @@ parse_arguments() {
                 exit 0
                 ;;
             *)
+                if [[ "$want_mesa_version_value" == true ]]; then
+                    MESA_VERSION_PIN="$argument"
+                    want_mesa_version_value=false
+                    continue
+                fi
                 die "不支持的参数：${argument}。可用参数为 -1/--1、-2/--2、-3/--3。" \
                     "Unsupported argument: ${argument}. Valid arguments are -1/--1, -2/--2, and -3/--3."
                 ;;
         esac
     done
+
+    if [[ "$want_mesa_version_value" == true ]]; then
+        die '--mesa-version 缺少版本号。' '--mesa-version requires a version value.'
+    fi
+    if [[ -n "$MESA_VERSION_PIN" ]]; then
+        [[ "$MESA_VERSION_PIN" =~ ^[0-9][0-9A-Za-z.+_-]*$ ]] || die \
+            "--mesa-version 的版本号无效：$MESA_VERSION_PIN" \
+            "Invalid --mesa-version value: $MESA_VERSION_PIN"
+    fi
 }
 
 uninstall_mesa_apt() {
@@ -703,18 +728,34 @@ choose_mesa_version() {
         names+=("$asset"); digests+=("$checksum"); sizes+=("$size")
     done <<< "$rows"
     ((${#names[@]} > 0)) || die '当前系统没有可用版本或版本清单异常。' 'No available versions for this system, or invalid version catalog.'
-    printf '\n%s\n' "$(msg '选择 Mesa 版本（默认最新，输入 0 返回）：' 'Select a Mesa version (default latest, 0 to cancel):')"
-    for index in "${!names[@]}"; do
-        ARCHIVE_NAME="${names[$index]}"
-        printf '  [%s] %s%s\n' "$((index + 1))" "$(mesa_archive_version)" "$(if ((index == 0)); then msg '（最新）' ' (latest)'; fi)"
-    done
-    printf '%s: ' "$(msg '请选择' 'Select')"
-    IFS= read -r choice || exit 0
-    [[ -n "$choice" ]] || choice=1
-    [[ "$choice" != 0 ]] || exit 0
-    [[ "$choice" =~ ^[0-9]+$ ]] && ((choice >= 1 && choice <= ${#names[@]})) || \
-        die '无效的版本选择。' 'Invalid version selection.'
-    index=$((choice - 1))
+    if [[ -n "$MESA_VERSION_PIN" ]]; then
+        # Non-interactive pin: find the catalogue entry whose version matches exactly.
+        local pinned_index=-1
+        for index in "${!names[@]}"; do
+            ARCHIVE_NAME="${names[$index]}"
+            if [[ "$(mesa_archive_version)" == "$MESA_VERSION_PIN" ]]; then
+                pinned_index=$index
+                break
+            fi
+        done
+        ((pinned_index >= 0)) || die \
+            "版本清单中没有 Mesa ${MESA_VERSION_PIN} 的软件包。可用 --choose-version 查看可用版本。" \
+            "The version catalog has no Mesa package for ${MESA_VERSION_PIN}; use --choose-version to list available versions."
+        index=$pinned_index
+    else
+        printf '\n%s\n' "$(msg '选择 Mesa 版本（默认最新，输入 0 返回）：' 'Select a Mesa version (default latest, 0 to cancel):')"
+        for index in "${!names[@]}"; do
+            ARCHIVE_NAME="${names[$index]}"
+            printf '  [%s] %s%s\n' "$((index + 1))" "$(mesa_archive_version)" "$(if ((index == 0)); then msg '（最新）' ' (latest)'; fi)"
+        done
+        printf '%s: ' "$(msg '请选择' 'Select')"
+        IFS= read -r choice || exit 0
+        [[ -n "$choice" ]] || choice=1
+        [[ "$choice" != 0 ]] || exit 0
+        [[ "$choice" =~ ^[0-9]+$ ]] && ((choice >= 1 && choice <= ${#names[@]})) || \
+            die '无效的版本选择。' 'Invalid version selection.'
+        index=$((choice - 1))
+    fi
     ARCHIVE_NAME="${names[$index]}"
     EXPECTED_ARCHIVE_SHA256="${digests[$index]}"
     EXPECTED_ARCHIVE_SIZE="${sizes[$index]}"
@@ -1506,7 +1547,7 @@ install_mesa() {
         install_media_decode_driver
         return 0
     fi
-    if [[ "$CHOOSE_VERSION" == true ]]; then
+    if [[ "$CHOOSE_VERSION" == true || -n "$MESA_VERSION_PIN" ]]; then
         choose_mesa_version
     fi
     resolve_expected_archive_sha256

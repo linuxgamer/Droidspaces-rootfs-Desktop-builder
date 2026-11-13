@@ -81,6 +81,8 @@ jobs:
       enable_chrome: false
       enable_usb_manager: false
       wayland_package_repository: Goldzxcbug/droidspaces-package
+      mesa_version: ''
+      anland_package_revision: ''
       build_id: ${{ needs.prepare.outputs.build_id }}
       asset_variant: zh
       publish_release: false
@@ -112,6 +114,8 @@ jobs:
       enable_chrome: false
       enable_usb_manager: false
       wayland_package_repository: Goldzxcbug/droidspaces-package
+      mesa_version: ''
+      anland_package_revision: ''
       build_id: ${{ needs.prepare.outputs.build_id }}
       asset_variant: en
       publish_release: false

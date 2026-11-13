@@ -133,6 +133,16 @@ on:
         required: true
         type: string
         default: Goldzxcbug/droidspaces-package
+      mesa_version:
+        description: Pin an exact Mesa version (empty = latest from the rolling manifest)
+        required: false
+        type: string
+        default: ''
+      anland_package_revision:
+        description: Pin the Anland package revision (empty = latest)
+        required: false
+        type: string
+        default: ''
 
 permissions:
   contents: write
@@ -164,3 +174,5 @@ jobs:
       enable_chrome: ${{ inputs.enable_chrome }}
       enable_usb_manager: ${{ inputs.enable_usb_manager }}
       wayland_package_repository: ${{ inputs.wayland_package_repository }}
+      mesa_version: ${{ inputs.mesa_version }}
+      anland_package_revision: ${{ inputs.anland_package_revision }}

@@ -69,6 +69,16 @@ on:
       enable_usb_manager:
         required: true
         type: boolean
+      mesa_version:
+        description: Pin an exact Mesa version (empty = latest from the rolling manifest)
+        required: false
+        type: string
+        default: ''
+      anland_package_revision:
+        description: Pin the Anland package revision (empty = latest)
+        required: false
+        type: string
+        default: ''
       wayland_package_repository:
         required: false
         type: string
@@ -402,6 +412,8 @@ jobs:
       - name: ${{ inputs.ui_language == 'zh' && format('构建根文件系统（{0}/{1}）', matrix.template, matrix.desktop) || format('Build RootFS ({0}/{1})', matrix.template, matrix.desktop) }}
         env:
           ANLAND_RELEASE_REPOSITORY: ${{ inputs.wayland_package_repository }}
+          ANLAND_PACKAGE_REVISION: ${{ inputs.anland_package_revision }}
+          MESA_VERSION: ${{ inputs.mesa_version }}
           CUSTOM_USERNAME: ${{ inputs.custom_username }}
         run: |
           chmod +x build_rootfs-native.sh

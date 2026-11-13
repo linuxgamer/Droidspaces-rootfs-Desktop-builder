@@ -8,6 +8,7 @@ ARG ENABLE_zh_tz_ARG
 ARG ENABLE_binfmt_ARG
 ARG ENABLE_yj_ARG
 ARG ENABLE_mesa_ARG
+ARG MESA_VERSION
 ARG DISPLAY_BACKEND
 ARG ENABLE_8gen2_wayland_ARG
 ARG ENABLE_chrome_ARG
@@ -195,7 +196,7 @@ EOF_RUN
 
 # Download and install Mesa
 RUN if [ "$ENABLE_mesa_ARG" = "true" ]; then \
-        /usr/local/sbin/install-mesa --1; \
+        if [ -n "$MESA_VERSION" ]; then /usr/local/sbin/install-mesa --1 --mesa-version "$MESA_VERSION"; else /usr/local/sbin/install-mesa --1; fi; \
     else \
         echo "--> [skipped] Mesa driver installation not enabled"; \
     fi

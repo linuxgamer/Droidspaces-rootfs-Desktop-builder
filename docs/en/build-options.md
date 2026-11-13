@@ -50,6 +50,8 @@ Choose the target, desktop, display backend, and optional features on the GitHub
 | `enable_chrome` | `true` / `false`; default `false` | Installs Google Chrome and its desktop integration; a large download. |
 | `enable_usb_manager` | `true` / `false`; default `false` | Installs the Droidspaces USB manager; pulls python3/PyQt5. |
 | `wayland_package_repository` | Public `owner/repository`; default `Goldzxcbug/droidspaces-package` | Selects the source for prebuilt Anland package Releases. |
+| `mesa_version` | Exact Mesa version string; default empty (latest) | Pins the Mesa build instead of taking the newest entry from the rolling manifest. An unknown version fails the build. |
+| `anland_package_revision` | Revision string; default empty (latest) | Pins the Anland package revision used for the Wayland desktop packages. |
 
 For exact defaults, see `.github/workflows/build-rootfs-releases.yml`. `enable_systemd257` is experimental and adds build time. Systems already at systemd 257 or older skip installation; details are in the [script guide](../../scripts/README.md).
 

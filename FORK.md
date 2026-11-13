@@ -68,6 +68,21 @@ would produce an image that fails during the build.
 The all-desktop matrix is now four targets times eight desktops, so the manifest generator
 expects 32 assets per language instead of 40.
 
+## Pinned versions
+
+`mesa_version` and `anland_package_revision` default to empty, which means each build takes
+whatever the rolling Mesa manifest and the Anland package release currently offer. Set them to
+make a build reproducible:
+
+- `mesa_version` selects that exact asset from Mesa's version catalogue and still verifies its
+  SHA-256 from the catalogue entry. `install-mesa.sh` gained `--mesa-version <ver>` for this;
+  unlike `--choose-version` it never prompts, so the Dockerfile can pass it during a build.
+- `anland_package_revision` pins the Anland revision resolved by `anland_prepare_release`.
+
+Both fail the build loudly when the requested version does not exist, instead of silently
+falling back to the latest. To see which versions a build would pick, leave them empty and read
+the build log, or run `install-mesa.sh --choose-version` inside an image to list the catalogue.
+
 ## Release feeds point at this repository
 
 The subscription indexes (`rootfs_zh.json`, `rootfs_en.json`) and the documentation that

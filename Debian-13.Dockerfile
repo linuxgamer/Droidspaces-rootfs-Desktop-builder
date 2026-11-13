@@ -8,6 +8,7 @@ ARG ENABLE_zh_tz_ARG
 ARG ENABLE_binfmt_ARG
 ARG ENABLE_yj_ARG
 ARG ENABLE_mesa_ARG
+ARG MESA_VERSION
 ARG ENABLE_kfgj_ARG
 ARG ENABLE_zip_ARG
 ARG ENABLE_docker_ARG
@@ -226,7 +227,7 @@ EOF_RUN
 
 # Mesa driver adaptation
 RUN if [ "$ENABLE_mesa_ARG" = "true" ]; then \
-        /usr/local/sbin/install-mesa --1; \
+        if [ -n "$MESA_VERSION" ]; then /usr/local/sbin/install-mesa --1 --mesa-version "$MESA_VERSION"; else /usr/local/sbin/install-mesa --1; fi; \
     else \
         echo "--> [skipped] Mesa driver installation not enabled"; \
     fi
