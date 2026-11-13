@@ -2,6 +2,10 @@ English | [中文](README.zh.md)
 
 # Droidspaces RootFS Builder
 
+> **English-first fork** of [Goldzxcbug/Droidspaces-rootfs-Desktop-builder](https://github.com/Goldzxcbug/Droidspaces-rootfs-Desktop-builder).
+> Build logic is upstream's; this fork makes English the default language. See [FORK.md](FORK.md)
+> for what differs and how the fork is kept in sync with upstream.
+
 Build ARM64 Linux RootFS images for Droidspaces on Android with GitHub Actions. Choose Debian, Ubuntu, Fedora, or Arch Linux, select KDE, KDE Mobile, GNOME, Anland Next, Niri, Hyprland, Mango, Denial, or command-line mode, then import the generated `.tar.xz` archive into Droidspaces.
 
 ![Debian 13 KDE running with Anland Wayland](docs/images/debian-kde-wayland.jpg)
