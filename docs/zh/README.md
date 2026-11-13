@@ -1,4 +1,4 @@
-[English documentation](../en/README.md) · [返回项目主页](../../README.md)
+[English documentation](../en/README.md) · [返回项目主页](../../README.zh.md)
 
 # 文档
 
@@ -8,7 +8,7 @@
 - [构建选项与发行版兼容性](构建选项.md)
 - [桌面启动与 Anland Wayland 配置](桌面与Anland.md)
 - [TUI、USB、固件与本地构建](进阶使用.md)
-- [脚本维护说明](../../scripts/README.md)
+- [脚本维护说明](../../scripts/README_zh.md)
 
 ## 桌面截图
 

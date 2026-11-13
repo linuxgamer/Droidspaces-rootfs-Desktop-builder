@@ -1,4 +1,4 @@
-[文档目录](README.md) · [项目主页](../../README.md)
+[文档目录](README.md) · [项目主页](../../README.zh.md)
 
 # 桌面启动与 Anland Wayland
 
@@ -65,4 +65,4 @@ sudo ./scripts/tui/install-anland-gnome.sh
 
 GNOME 安装器已支持 Debian、Ubuntu、Fedora 和 Arch 的包格式，并从 `anland-gnome-packages` Release 清单读取匹配目标。
 
-安装器选项、下载源和校验方式见[脚本说明](../../scripts/README.md#anland-kde-安装器)。
+安装器选项、下载源和校验方式见[脚本说明](../../scripts/README_zh.md#anland-kde-安装器)。

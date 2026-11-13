@@ -1,10 +1,10 @@
-name: 编译并发布 Droidspaces RootFS
+name: Build and Release Droidspaces RootFS
 
 on:
   workflow_dispatch:
     inputs:
       build_target:
-        description: 选择要构建的发行版
+        description: Distribution to build
         required: true
         type: choice
         default: Debian-13
@@ -19,12 +19,12 @@ on:
           - all
           - all-wayland
       custom_username:
-        description: 自定义用户名
+        description: Custom username
         required: false
         type: string
         default: Gold
       desktop:
-        description: 主桌面（负责开机自启动的桌面）
+        description: Primary desktop (the one that autostarts)
         required: true
         type: choice
         default: KDE
@@ -39,25 +39,25 @@ on:
           - Mango
           - Denial
       extra_desktops:
-        description: "额外桌面，用逗号分隔（例如 Niri,Hyprland）"
+        description: "Extra desktops, comma-separated (e.g. Niri,Hyprland)"
         required: false
         type: string
         default: ""
       desktop_autostart:
-        description: 桌面开机自启动（桌面为 none 时自动关闭）
+        description: Start desktop on boot (auto-disabled when desktop is none)
         required: true
         type: boolean
         default: true
       display_backend:
-        description: 显示后端（KDE mobile/GNOME/Anland Next/Niri/Hyprland/Mango/Denial 固定使用 Anland Wayland）
+        description: Display backend (Arch KDE and KDE mobile/GNOME/Anland Next/Niri/Hyprland/Mango/Denial always use Anland Wayland)
         required: true
         type: choice
-        default: anland-wayland
+        default: x11
         options:
           - x11
           - anland-wayland
       PulseAudio:
-        description: PulseAudio 音频转发
+        description: PulseAudio forwarding
         required: true
         type: choice
         default: socket
@@ -66,62 +66,62 @@ on:
           - tcp
           - none
       enable_zh_tz:
-        description: 使用中文并设置上海时区
+        description: Use Chinese language and Asia/Shanghai timezone
         required: true
         type: boolean
-        default: true
+        default: false
       enable_mesa:
-        description: 开启高通骁龙 GPU 支持
+        description: Enable Qualcomm Snapdragon GPU support
         required: true
         type: boolean
         default: true
       enable_8gen2_wayland:
-        description: 修复骁龙 8 Gen 2 Wayland 花屏
+        description: Fix Snapdragon 8 Gen 2 Wayland corruption
         required: true
         type: boolean
         default: false
       nosnap:
-        description: 移除 Ubuntu Snap
+        description: Remove Ubuntu Snap
         required: true
         type: boolean
-        default: true
+        default: false
       enable_systemd257:
-        description: 使用 systemd 257 包族（仅支持 none 和普通 KDE）
+        description: Use the systemd 257 package family (none and standard KDE only)
         required: true
         type: boolean
         default: false
       enable_srf:
-        description: 开启 fcitx5 输入法
+        description: Enable fcitx5
         required: true
         type: boolean
-        default: true
+        default: false
       enable_binfmt:
-        description: 开启跨架构支持
+        description: Enable cross-architecture support
         required: true
         type: boolean
         default: false
       enable_yj:
-        description: 开启 NAT 和硬件识别
+        description: Enable NAT and hardware recognition
         required: true
         type: boolean
         default: true
       enable_kfgj:
-        description: 安装开发工具
+        description: Install development tools
         required: true
         type: boolean
         default: false
       enable_zip:
-        description: 安装压缩工具
+        description: Install compression tools
         required: true
         type: boolean
         default: true
       enable_docker:
-        description: 安装 Docker
+        description: Install Docker
         required: true
         type: boolean
         default: false
       wayland_package_repository:
-        description: Wayland 软件包仓库（公开的 owner/repository）
+        description: Wayland package repository (public owner/repository)
         required: true
         type: string
         default: Goldzxcbug/droidspaces-package
@@ -131,10 +131,10 @@ permissions:
 
 jobs:
   build:
-    name: 构建
+    name: Build
     uses: ./.github/workflows/build-rootfs-core.yml
     with:
-      ui_language: zh
+      ui_language: en
       build_target: ${{ inputs.build_target }}
       custom_username: ${{ inputs.custom_username }}
       desktop: ${{ inputs.desktop }}

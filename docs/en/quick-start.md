@@ -1,4 +1,4 @@
-[Documentation index](README.md) · [Project home](../../README_english.md)
+[Documentation index](README.md) · [Project home](../../README.md)
 
 # Quick Start
 

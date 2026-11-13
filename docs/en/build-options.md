@@ -1,4 +1,4 @@
-[Documentation index](README.md) · [Project home](../../README_english.md)
+[Documentation index](README.md) · [Project home](../../README.md)
 
 # Build Options
 
@@ -51,7 +51,7 @@ Choose the target, desktop, display backend, and optional features on the GitHub
 | `enable_docker` | `true` / `false`; default `false` | Installs Docker packages in the RootFS. |
 | `wayland_package_repository` | Public `owner/repository`; default `Goldzxcbug/droidspaces-package` | Selects the source for prebuilt Anland package Releases. |
 
-For exact defaults, see `.github/workflows/build-rootfs-releases-en.yml` and `build-rootfs-releases.yml`. `enable_systemd257` is experimental and adds build time. Systems already at systemd 257 or older skip installation; details are in the [script guide](../../scripts/README_english.md).
+For exact defaults, see `.github/workflows/build-rootfs-releases.yml`. `enable_systemd257` is experimental and adds build time. Systems already at systemd 257 or older skip installation; details are in the [script guide](../../scripts/README.md).
 
 ## Generated Droidspaces recommendations
 
