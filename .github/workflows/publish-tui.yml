@@ -12,6 +12,7 @@ on:
       - 'scripts/tui/droidspaces-tui.sh'
       - 'scripts/tui/droidspaces-gpu.sh'
       - 'scripts/generate-tui-manifest.sh'
+      - '.github/workflows/publish-tui.yml'
 
 permissions:
   contents: write
