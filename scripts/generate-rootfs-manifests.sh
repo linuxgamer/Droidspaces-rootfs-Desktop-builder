@@ -24,11 +24,11 @@ done
 
 declare -A distro_name=(
   [Debian-13]='Debian 13' [Ubuntu-26]='Ubuntu 26.04'
-  [Fedora-43]='Fedora 43' [Fedora-44]='Fedora 44' [Arch]='Arch Linux'
+  [Fedora-44]='Fedora 44' [Arch]='Arch Linux'
 )
 declare -A distro_id=(
   [Debian-13]='Debian' [Ubuntu-26]='Ubuntu'
-  [Fedora-43]='Fedora' [Fedora-44]='Fedora' [Arch]='Arch'
+  [Fedora-44]='Fedora' [Arch]='Arch'
 )
 declare -A desktop_name=(
   [kde]='KDE Plasma' [kde-mobile]='KDE Plasma Mobile' [gnome]='GNOME'
@@ -43,14 +43,14 @@ declare -A desktop_label=(
 declare -A distro_detail_zh=(
   [Debian-13]='基于 Debian 13 Trixie ARM64，预装常用容器工具、网络与 SSH 支持'
   [Ubuntu-26]='基于 Ubuntu 26.04 ARM64，预装常用容器工具、网络与 SSH 支持'
-  [Fedora-43]='基于 Fedora 43 ARM64，包含 DNF 管理工具、网络与 SSH 支持'
+  
   [Fedora-44]='基于 Fedora 44 ARM64，包含 DNF 管理工具、网络与 SSH 支持'
   [Arch]='基于 Arch Linux ARM 滚动发行版，包含 Pacman、网络与 SSH 支持'
 )
 declare -A distro_detail_en=(
   [Debian-13]='Based on Debian 13 Trixie for ARM64, with common container utilities, networking, and SSH support'
   [Ubuntu-26]='Based on Ubuntu 26.04 for ARM64, with common container utilities, networking, and SSH support'
-  [Fedora-43]='Based on Fedora 43 for ARM64, with DNF tools, networking, and SSH support'
+  
   [Fedora-44]='Based on Fedora 44 for ARM64, with DNF tools, networking, and SSH support'
   [Arch]='Based on rolling Arch Linux ARM, with Pacman, networking, and SSH support'
 )
@@ -87,7 +87,6 @@ for path in "$ASSETS_DIR"/*.tar.xz; do
   distro="${file%%-*}"
   if [[ "$file" == Debian-13-* ]]; then distro=Debian-13; rest="${file#Debian-13-}"; fi
   if [[ "$file" == Ubuntu-26-* ]]; then distro=Ubuntu-26; rest="${file#Ubuntu-26-}"; fi
-  if [[ "$file" == Fedora-43-* ]]; then distro=Fedora-43; rest="${file#Fedora-43-}"; fi
   if [[ "$file" == Fedora-44-* ]]; then distro=Fedora-44; rest="${file#Fedora-44-}"; fi
   if [[ "$file" == Arch-* ]]; then distro=Arch; rest="${file#Arch-}"; fi
   desktop="${rest%%-Wayland-*}"
@@ -118,6 +117,6 @@ for path in "$ASSETS_DIR"/*.tar.xz; do
   entries="$(jq --argjson entry "$entry" '. + [$entry]' <<<"$entries")"
   count=$((count + 1))
 done
-(( count == 40 )) || { echo "Expected 40 $LANGUAGE assets, found $count" >&2; exit 1; }
+(( count == 32 )) || { echo "Expected 32 $LANGUAGE assets, found $count" >&2; exit 1; }
 mkdir -p "${OUTPUT%/*}"
 jq 'sort_by(.distro, .name, .architecture)' <<<"$entries" > "$OUTPUT"

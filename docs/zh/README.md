@@ -22,9 +22,9 @@
 
 ![Debian 13 GNOME 桌面](../images/debian-gnome-wayland.jpg)
 
-### Fedora 43 · KDE Plasma · Wayland
+### Fedora · KDE Plasma · Wayland
 
-![Fedora 43 KDE 桌面](../images/fedora-kde-wayland.jpg)
+[Fedora KDE 桌面](../images/fedora-kde-wayland.jpg)
 
 ### Kubuntu 26.04 · KDE Plasma · Wayland
 

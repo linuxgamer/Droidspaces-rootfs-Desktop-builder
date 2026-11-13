@@ -155,7 +155,7 @@ jobs:
           ## English
 
           Rolling ARM64 RootFS collection for Droidspaces, covering 40 distribution and desktop combinations:
-          - Distributions: Debian 13, Ubuntu 26.04, Fedora 43, Fedora 44, and Arch Linux.
+          - Distributions: Debian 13, Ubuntu 26.04, Fedora 44, and Arch Linux.
           - Anland Wayland desktops: KDE Plasma, KDE Plasma Mobile, GNOME, Anland Next, Niri, Hyprland, Mango, and Denial.
 
           Each combination is available in Chinese and English, for 80 `.tar.xz` archives in total. Use `rootfs_en.json` or `rootfs_zh.json` as the subscription manifest in Droidspaces RootFS management. The manifests include version, file size, SHA-256 checksum, and download URL for each image.
@@ -165,7 +165,7 @@ jobs:
           ## Chinese
 
           Rolling ARM64 RootFS collection for Droidspaces, covering 40 distribution and desktop combinations:
-          - Distributions: Debian 13, Ubuntu 26.04, Fedora 43, Fedora 44, and Arch Linux.
+          - Distributions: Debian 13, Ubuntu 26.04, Fedora 44, and Arch Linux.
           - Anland Wayland desktops: KDE Plasma, KDE Plasma Mobile, GNOME, Anland Next, Niri, Hyprland, Mango, and Denial.
 
           Each combination is available in Chinese and English, for 80 `.tar.xz` archives in total. Use `rootfs_zh.json` or `rootfs_en.json` as the subscription manifest in Droidspaces RootFS management. The manifests include version, file size, SHA-256 checksum, and download URL for each image.

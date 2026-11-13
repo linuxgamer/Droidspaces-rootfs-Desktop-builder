@@ -25,7 +25,7 @@ The `usb-passthrough` and `usb-storage-passthrough` commands are also available.
 
 ## Install hardware firmware
 
-Debian 13 and Ubuntu 24/25/26 images include `download-firmware`. Run it manually in the container when needed:
+Debian 13 and Ubuntu 24/26 images include `download-firmware`. Run it manually in the container when needed:
 
 ```bash
 sudo download-firmware
@@ -63,10 +63,10 @@ The output name resembles `Ubuntu-26-kde-Wayland-Droidspaces-rootfs-aarch64-loca
 
 ## Limitations
 
-- Anland Wayland is supported on Debian 13, Ubuntu 26, Fedora 43/44, and Arch; Arch KDE is Wayland-only, while Ubuntu 24/25 use X11.
-- GNOME is available on Debian 13, Ubuntu 26, Fedora 43/44, and Arch Linux ARM with Anland Wayland.
+- Anland Wayland is supported on Debian 13, Ubuntu 26, Fedora 44, and Arch; Arch KDE is Wayland-only, while Ubuntu 24 use X11.
+- GNOME is available on Debian 13, Ubuntu 26, Fedora 44, and Arch Linux ARM with Anland Wayland.
 - KDE Mobile and Anland Next are available only on supported Wayland targets.
-- Niri, Hyprland, Mango, and Denial are available on Debian 13, Ubuntu 26, Fedora 43/44, and Arch Linux ARM with Anland Wayland.
+- Niri, Hyprland, Mango, and Denial are available on Debian 13, Ubuntu 26, Fedora 44, and Arch Linux ARM with Anland Wayland.
 - Fedora may need hardware access on some devices. Debian/Ubuntu may lag when `noseccomp` is disabled or the host kernel lacks `USER_NS`.
 - This project's QEMU/binfmt cross-architecture path is not currently recommended for Arch.
 

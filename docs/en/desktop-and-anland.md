@@ -30,7 +30,7 @@ startplasma-x11
 
 ### Anland Wayland host setup
 
-Anland Wayland supports Debian 13, Ubuntu 26, Fedora 43/44, and Arch. Arch KDE uses Anland Wayland only. KDE uses patched KWin/Xwayland; GNOME uses patched Mutter and installs a full desktop with common applications. Niri, Hyprland, Mango, and Denial include a lightweight session, terminal, XDG portal, audio, and fonts for users to extend. Their ARM64 packages are published by [`droidspaces-package`](https://github.com/Goldzxcbug/droidspaces-package) and installed from the matching Release during RootFS creation.
+Anland Wayland supports Debian 13, Ubuntu 26, Fedora 44, and Arch. Arch KDE uses Anland Wayland only. KDE uses patched KWin/Xwayland; GNOME uses patched Mutter and installs a full desktop with common applications. Niri, Hyprland, Mango, and Denial include a lightweight session, terminal, XDG portal, audio, and fonts for users to extend. Their ARM64 packages are published by [`droidspaces-package`](https://github.com/Goldzxcbug/droidspaces-package) and installed from the matching Release during RootFS creation.
 
 Each lightweight compositor has its own `desktops/<slug>.sh` profile; the profile writes the session and Anland/Mesa environment to `/etc/environment`, like the other desktop profiles. The shared desktop launcher runs each packaged compositor command directly without a session wrapper.
 
@@ -57,7 +57,7 @@ The build fetches matching packages automatically. To install them separately in
 sudo ./scripts/tui/install-anland-kde.sh
 ```
 
-The GNOME installer runs on Debian 13, Ubuntu 26, Fedora 43/44, and Arch Linux ARM:
+The GNOME installer runs on Debian 13, Ubuntu 26, Fedora 44, and Arch Linux ARM:
 
 ```bash
 sudo ./scripts/tui/install-anland-gnome.sh

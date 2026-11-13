@@ -20,9 +20,9 @@ These screenshots show different distributions and device configurations. Versio
 
 ![Debian 13 GNOME desktop](../images/debian-gnome-wayland.jpg)
 
-### Fedora 43 · KDE Plasma · Wayland
+### Fedora · KDE Plasma · Wayland
 
-![Fedora 43 KDE desktop](../images/fedora-kde-wayland.jpg)
+[Fedora KDE desktop](../images/fedora-kde-wayland.jpg)
 
 ### Kubuntu 26.04 · KDE Plasma · Wayland
 

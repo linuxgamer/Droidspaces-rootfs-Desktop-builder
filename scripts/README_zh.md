@@ -19,8 +19,8 @@
 | `tui/install-anland-kde.sh` | ARM64 Linux 容器 | 安装 Anland patched KWin/Xwayland Release 包，并锁定相关包。 |
 | `tui/install-anland-gnome.sh` | ARM64 Debian/Ubuntu/Fedora/Arch 容器 | 安装 Anland patched Mutter Release 包，并锁定相关包。 |
 | `tui/install-anland-next.sh` | ARM64 Debian/Ubuntu/Fedora/Arch 容器 | 安装 Anland Next session 包（mini-wm + patched Xwayland + patched bubblewrap）。 |
-| `tui/install-anland-niri.sh` | ARM64 Debian 13、Ubuntu 26、Fedora 43/44、Arch 容器 | 安装 Anland Niri 与共享的 patched Xwayland 包。 |
-| `tui/install-anland-hyprland.sh`、`install-anland-mango.sh`、`install-anland-denial.sh` | ARM64 Debian 13、Ubuntu 26、Fedora 43/44、Arch 容器 | 安装对应 compositor 与 patched Xwayland 包。 |
+| `tui/install-anland-niri.sh` | ARM64 Debian 13、Ubuntu 26、Fedora 44、Arch 容器 | 安装 Anland Niri 与共享的 patched Xwayland 包。 |
+| `tui/install-anland-hyprland.sh`、`install-anland-mango.sh`、`install-anland-denial.sh` | ARM64 Debian 13、Ubuntu 26、Fedora 44、Arch 容器 | 安装对应 compositor 与 patched Xwayland 包。 |
 | `install-anland-desktop.sh` | RootFS 构建环境 | 根据桌面 slug 分发到 KDE、GNOME、Niri、Hyprland、Mango、Denial 或 Anland Next 安装器。 |
 | `lib/anland-build.sh` | RootFS 构建宿主 | 为 native/QEMU 构建统一解析 Anland 包族、Release tag 和 revision。 |
 | `install-usb-manager.sh` | Linux 容器 | 安装 Droidspaces USB Manager、发行版依赖、菜单入口和用户权限。 |
@@ -63,7 +63,7 @@ droidspaces-tui --source github
 
 ## Mesa 安装器
 
-`install-mesa.sh` 在 GitHub/代理模式从分发 Release 选择当前发行版对应的 ARM64 Mesa 资产；CNB 模式则只读取同一 CNB Release 的 `mesa-distribution-manifest`。随后安装其中同步的 `msm_drm_drv_video.so`。支持 Debian 13、Ubuntu 24.04/25.10/26.04、Fedora 43/44 和 Arch Linux。媒体解码驱动按发行版安装到 libva 的默认驱动目录：Debian/Ubuntu 为 `/usr/lib/aarch64-linux-gnu/dri`，Fedora 为 `/usr/lib64/dri`，Arch Linux 为 `/usr/lib/dri`。
+`install-mesa.sh` 在 GitHub/代理模式从分发 Release 选择当前发行版对应的 ARM64 Mesa 资产；CNB 模式则只读取同一 CNB Release 的 `mesa-distribution-manifest`。随后安装其中同步的 `msm_drm_drv_video.so`。支持 Debian 13、Ubuntu 24.04/25.10/26.04、Fedora 44 和 Arch Linux。媒体解码驱动按发行版安装到 libva 的默认驱动目录：Debian/Ubuntu 为 `/usr/lib/aarch64-linux-gnu/dri`，Fedora 为 `/usr/lib64/dri`，Arch Linux 为 `/usr/lib/dri`。
 
 安装器会严格检查 Release tag、资产名和下载内容。GitHub/代理模式保留 GitHub Release API 的 SHA-256 交叉校验；CNB 模式只使用 CNB 分发清单中的 SHA-256 与大小，并继续校验随 Release 同步的媒体驱动 `SHA256SUMS`。下载支持断点续传，临时文件在退出时自动清理。
 
@@ -108,7 +108,7 @@ sudo ./scripts/tui/install-mesa.sh --3  # ghproxy.net
 
 ## Anland KDE 安装器
 
-`install-anland-kde.sh` 默认从 `Goldzxcbug/droidspaces-package` 的固定滚动 Release `anland-kde-packages` 读取 `anland-kde-manifest`，为 Debian 13、Ubuntu 26.04、Fedora 43/44 或 Arch Linux ARM64 安装匹配版本的 patched KWin/Xwayland 包。
+`install-anland-kde.sh` 默认从 `Goldzxcbug/droidspaces-package` 的固定滚动 Release `anland-kde-packages` 读取 `anland-kde-manifest`，为 Debian 13、Ubuntu 26.04、Fedora 44 或 Arch Linux ARM64 安装匹配版本的 patched KWin/Xwayland 包。
 
 ```bash
 sudo ./scripts/tui/install-anland-kde.sh
@@ -142,7 +142,7 @@ sudo ANLAND_RELEASE_REPOSITORY=owner/repository \
 
 ## Anland Next 安装器
 
-`install-anland-next.sh` 默认从固定滚动 Release `anland-session-packages` 读取 `anland-session-manifest`，为 Debian 13、Ubuntu 26.04、Fedora 43/44 或 Arch Linux ARM64 安装 `anland-session` 包。下载源选择、镜像 digest 校验和命令行参数与 KDE 安装器一致。
+`install-anland-next.sh` 默认从固定滚动 Release `anland-session-packages` 读取 `anland-session-manifest`，为 Debian 13、Ubuntu 26.04、Fedora 44 或 Arch Linux ARM64 安装 `anland-session` 包。下载源选择、镜像 digest 校验和命令行参数与 KDE 安装器一致。
 
 ```bash
 sudo ./scripts/tui/install-anland-next.sh
@@ -163,7 +163,7 @@ sudo ANLAND_NEXT_RELEASE_REPOSITORY=owner/repository \
 
 ## Anland Niri 安装器
 
-Niri、Hyprland、Mango 和 Denial 安装器从各自固定滚动 Release 安装 compositor 与 patched `xorg-xwayland`，支持 Debian 13、Ubuntu 26、Fedora 43/44 和 Arch ARM64。四个桌面在 `scripts/desktops/<slug>.sh` 各有独立 profile；profile 提供终端、XDG portal、音频和字体等基础服务，Niri 在 Arch 上还包含常用桌面工具。各 compositor 共用 patched Xwayland；安装器会阻止互相覆盖，并在卸载时保留其他组件使用的包。
+Niri、Hyprland、Mango 和 Denial 安装器从各自固定滚动 Release 安装 compositor 与 patched `xorg-xwayland`，支持 Debian 13、Ubuntu 26、Fedora 44 和 Arch ARM64。四个桌面在 `scripts/desktops/<slug>.sh` 各有独立 profile；profile 提供终端、XDG portal、音频和字体等基础服务，Niri 在 Arch 上还包含常用桌面工具。各 compositor 共用 patched Xwayland；安装器会阻止互相覆盖，并在卸载时保留其他组件使用的包。
 
 ```bash
 sudo ./scripts/tui/install-anland-niri.sh
@@ -195,7 +195,7 @@ sudo ./scripts/systemd257.sh
 
 ## 固件工具
 
-`download-firmware` 会被复制为 Debian 13 和 Ubuntu 24/25/26 RootFS 中的 `/usr/local/bin/download-firmware`，但不会自动执行。需要时在容器中运行：
+`download-firmware` 会被复制为 Debian 13 和 Ubuntu 24/26 RootFS 中的 `/usr/local/bin/download-firmware`，但不会自动执行。需要时在容器中运行：
 
 ```bash
 sudo download-firmware

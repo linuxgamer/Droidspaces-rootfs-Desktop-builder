@@ -10,22 +10,20 @@ Choose the target, desktop, display backend, and optional features on the GitHub
 | --- | --- | --- | --- |
 | `Debian-13` | Debian 13 (trixie) | `none`, `KDE`, `KDE mobile`, `GNOME`, `Anland Next`, `Niri`, `Hyprland`, `Mango`, `Denial` | Yes |
 | `Ubuntu-24` | Ubuntu 24.04 | `none`, `KDE` | No |
-| `Ubuntu-25` | Ubuntu 25.10 | `none`, `KDE` | No |
 | `Ubuntu-26` | Ubuntu 26.04 | `none`, `KDE`, `KDE mobile`, `GNOME`, `Anland Next`, `Niri`, `Hyprland`, `Mango`, `Denial` | Yes |
-| `Fedora-43` | Fedora 43 | `none`, `KDE`, `KDE mobile`, `GNOME`, `Anland Next`, `Niri`, `Hyprland`, `Mango`, `Denial` | Yes |
 | `Fedora-44` | Fedora 44 | `none`, `KDE`, `KDE mobile`, `GNOME`, `Anland Next`, `Niri`, `Hyprland`, `Mango`, `Denial` | Yes |
 | `Arch` | Arch Linux ARM | `none`, `KDE`, `KDE mobile`, `GNOME`, `Anland Next`, `Niri`, `Hyprland`, `Mango`, `Denial` | Yes (KDE uses Anland Wayland only) |
 
-`all` filters targets according to desktop/backend support. `all-wayland` builds Debian 13, Ubuntu 26, Fedora 43/44, and Arch for KDE/KDE Mobile, GNOME, Niri, Hyprland, Mango, and Denial. Arch KDE, GNOME, KDE Mobile, Anland Next, Niri, Hyprland, Mango, and Denial force `anland-wayland`.
+`all` filters targets according to desktop/backend support. `all-wayland` builds Debian 13, Ubuntu 26, Fedora 44, and Arch for KDE/KDE Mobile, GNOME, Niri, Hyprland, Mango, and Denial. Arch KDE, GNOME, KDE Mobile, Anland Next, Niri, Hyprland, Mango, and Denial force `anland-wayland`.
 
 | Desktop | Description |
 | --- | --- |
 | `none` | Command-line environment for SSH, development, or a custom desktop. |
 | `KDE` | KDE Plasma; Arch supports Anland Wayland only, while other supported targets may use X11 or Anland Wayland. |
 | `KDE mobile` | Touch-first Plasma Mobile; requires Anland Wayland. |
-| `GNOME` | A full Anland Wayland desktop on Debian 13, Ubuntu 26, Fedora 43/44, and Arch Linux ARM, with a terminal, file manager, settings, system monitor, keyring, portal, and common document/media apps. |
+| `GNOME` | A full Anland Wayland desktop on Debian 13, Ubuntu 26, Fedora 44, and Arch Linux ARM, with a terminal, file manager, settings, system monitor, keyring, portal, and common document/media apps. |
 | `Anland Next` | An Anland session with rootless Xwayland and mini-wm, without a full desktop; Wayland only. |
-| `Niri`, `Hyprland`, `Mango`, `Denial` | Anland Wayland compositors on Debian 13, Ubuntu 26, Fedora 43/44, and Arch Linux ARM. They include a basic terminal, XDG portal, audio, and fonts, without a full desktop application set. |
+| `Niri`, `Hyprland`, `Mango`, `Denial` | Anland Wayland compositors on Debian 13, Ubuntu 26, Fedora 44, and Arch Linux ARM. They include a basic terminal, XDG portal, audio, and fonts, without a full desktop application set. |
 
 ## Workflow inputs
 

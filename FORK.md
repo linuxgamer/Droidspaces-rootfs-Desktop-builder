@@ -51,6 +51,23 @@ inputs in the core, release and all-desktop workflows.
 Keeping `enable_mesa` and `enable_yj` on is intentional: they carry GPU acceleration and the
 networking/hardware services the images exist for.
 
+## Supported targets
+
+Upstream builds `Debian-13`, `Ubuntu-24`, `Ubuntu-25`, `Ubuntu-26`, `Fedora-43`, `Fedora-44`
+and `Arch`. This fork drops `Ubuntu-25` (an interim release, past its 9-month window, and
+X11-only here) and `Fedora-43` (out of support now that Fedora 45 is current).
+
+They are not replaced yet, and that is deliberate: the prebuilt Mesa and Anland packages in
+`Goldzxcbug/droidspaces-package` exist only for `debian_trixie`, `ubuntu_noble`,
+`ubuntu_questing`, `ubuntu_resolute`, `fedora_43`, `fedora_44` and `archlinux`. There are no
+assets at all for Fedora 45/46 or Ubuntu 26.10, and `install-mesa.sh` aborts on an unknown
+system rather than degrading quietly. Adding a target with the same GPU and Anland Wayland
+support therefore needs new package builds upstream or in this fork first — a Dockerfile alone
+would produce an image that fails during the build.
+
+The all-desktop matrix is now four targets times eight desktops, so the manifest generator
+expects 32 assets per language instead of 40.
+
 ## Release feeds point at this repository
 
 The subscription indexes (`rootfs_zh.json`, `rootfs_en.json`) and the documentation that

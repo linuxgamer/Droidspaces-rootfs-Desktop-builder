@@ -1048,7 +1048,7 @@ main() {
       log "当前发行版已经运行 systemd 257，不需要预构建包族" "This distribution already runs systemd 257; the prebuilt package family is not needed"
       return 0
     fi
-    die "当前发行版没有预构建 257 包族；仅支持 Ubuntu 26.04、Fedora 43/44 和 Arch Linux ARM" "This distribution has no prebuilt 257 package family; only Ubuntu 26.04, Fedora 43/44, and Arch Linux ARM are supported"
+    die "当前发行版没有预构建 257 包族；仅支持 Ubuntu 26.04、Fedora 44 和 Arch Linux ARM" "This distribution has no prebuilt 257 package family; only Ubuntu 26.04, Fedora 44, and Arch Linux ARM are supported"
   fi
 
   verify_target_tools_and_architecture
