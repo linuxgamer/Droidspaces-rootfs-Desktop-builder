@@ -45,10 +45,10 @@ jobs:
         run: |
           set -euo pipefail
           manifest="$RUNNER_TEMP/Gold-bug-tui-manifest"
-          # Every listed asset must exist with the recorded size; a mismatch would make the
-          # installed TUI reject the update.
+          # Only data rows have a 64-hex digest in the first field; this skips the header
+          # and the format=/release_tag=/revision=/generated_at= lines.
           while IFS=$'\t' read -r sha size role target asset; do
-            [[ "$sha" == "sha256" ]] && continue
+            [[ "$sha" =~ ^[0-9a-f]{64}$ ]] || continue
             [[ -f "scripts/tui/$asset" ]] || { echo "missing asset: $asset" >&2; exit 1; }
             actual_size="$(wc -c < "scripts/tui/$asset" | tr -d ' ')"
             [[ "$actual_size" == "$size" ]] || { echo "size mismatch: $asset" >&2; exit 1; }
