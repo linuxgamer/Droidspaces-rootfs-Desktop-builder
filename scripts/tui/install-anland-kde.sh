@@ -4,7 +4,10 @@ set -euo pipefail
 # The package archives are deliberately kept out of Git. Override the
 # repository when installing packages published by a fork.
 readonly DEFAULT_REPOSITORY="Goldzxcbug/droidspaces-package"
-readonly RELEASE_REPOSITORY="${ANLAND_KDE_RELEASE_REPOSITORY:-$DEFAULT_REPOSITORY}"
+# Fedora 45 packages are built and published by this fork, because upstream publishes no
+# Anland recipe for it. Every other distribution keeps reading upstream's release.
+readonly FEDORA45_REPOSITORY="${ANLAND_KDE_FEDORA45_REPOSITORY:-linuxgamer/droidspaces-package}"
+RELEASE_REPOSITORY="${ANLAND_KDE_RELEASE_REPOSITORY:-$DEFAULT_REPOSITORY}"
 RELEASE_TAG="${ANLAND_KDE_RELEASE_TAG:-}"
 readonly ROLLING_RELEASE_TAG="anland-kde-packages"
 readonly MANIFEST_NAME="anland-kde-manifest"
@@ -491,9 +494,19 @@ detect_target() {
                     ARCHIVE_SUFFIX="-aarch64.tar.gz"
                     ARCHIVE_TARGET="fedora44"
                     ;;
+                fedora:45*)
+                    TARGET="Fedora 45"
+                    PACKAGE_TYPE="rpm"
+                    ARCHIVE_PREFIX="anland-kde-fedora45-kwin-"
+                    ARCHIVE_SUFFIX="-aarch64.tar.gz"
+                    ARCHIVE_TARGET="fedora45"
+                    # No upstream release carries Fedora 45 assets, so switch the whole
+                    # lookup (manifest and archive) to this fork's release.
+                    [[ -n "${ANLAND_KDE_RELEASE_REPOSITORY:-}" ]] || RELEASE_REPOSITORY="$FEDORA45_REPOSITORY"
+                    ;;
                 *)
-                    die "不支持当前系统 ${system_name}。仅支持 Debian 13、Ubuntu 26.04、Fedora 43/44、Arch Linux。" \
-                        "Unsupported system: ${system_name}. Supported systems are Debian 13, Ubuntu 26.04, Fedora 43/44, and Arch Linux."
+                    die "不支持当前系统 ${system_name}。仅支持 Debian 13、Ubuntu 26.04、Fedora 43/44/45、Arch Linux。" \
+                        "Unsupported system: ${system_name}. Supported systems are Debian 13, Ubuntu 26.04, Fedora 43/44/45, and Arch Linux."
                     ;;
             esac
             ;;
