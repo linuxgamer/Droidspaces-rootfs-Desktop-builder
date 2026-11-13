@@ -15,6 +15,8 @@ ARG ENABLE_docker_ARG
 ARG ENABLE_srf_ARG
 ARG ENABLE_nosnap_ARG
 ARG ENABLE_systemd257_ARG
+ARG ENABLE_chrome_ARG
+ARG ENABLE_usb_manager_ARG
 ARG USERNAME
 ######################################################
 
@@ -141,8 +143,10 @@ RUN sed -i '/en_US.UTF-8/s/^# //' /etc/locale.gen && \
     useradd -m -s /bin/bash ${USERNAME} && echo "${USERNAME}:1234" | chpasswd && \
     systemctl enable ssh
 
-# Install Droidspaces USB Manager for all Ubuntu RootFS
-RUN /usr/local/sbin/install-droidspaces-usb-manager --user "${USERNAME}"
+# Optional: the USB manager pulls python3/PyQt5 and a third-party application.
+RUN if [ "$ENABLE_usb_manager_ARG" = "true" ]; then \
+    /usr/local/sbin/install-droidspaces-usb-manager --user "${USERNAME}"; \
+    fi
 
 # Initialize the environment variables file; desktop-specific variables are managed by the matching profile.
 RUN : > /etc/environment
@@ -197,8 +201,10 @@ RUN if [ "$ENABLE_mesa_ARG" = "true" ]; then \
         echo "--> [skipped] Mesa driver installation not enabled"; \
     fi
 
-# Install and configure native ARM64 Google Chrome.
-RUN /usr/local/sbin/configure-chrome "$DESKTOP" "$DISPLAY_BACKEND"
+# Optional: installs Google Chrome (a large download) and its desktop integration.
+RUN if [ "$ENABLE_chrome_ARG" = "true" ]; then \
+    /usr/local/sbin/configure-chrome "$DESKTOP" "$DISPLAY_BACKEND"; \
+    fi
 
 # Fix the DHCP network service configuration inside the container
 RUN mkdir -p /etc/systemd/network && \

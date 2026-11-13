@@ -63,6 +63,12 @@ on:
       enable_docker:
         required: true
         type: boolean
+      enable_chrome:
+        required: true
+        type: boolean
+      enable_usb_manager:
+        required: true
+        type: boolean
       wayland_package_repository:
         required: false
         type: string
@@ -414,6 +420,8 @@ jobs:
             -e "${{ inputs.enable_zip }}" \
             -f "${{ inputs.enable_docker }}" \
             -h "${{ inputs.enable_srf }}" \
+            -j "${{ inputs.enable_chrome }}" \
+            -k "${{ inputs.enable_usb_manager }}" \
             -n "${{ inputs.nosnap }}" \
             -S "${{ inputs.enable_systemd257 }}" \
             -t "${{ inputs.enable_8gen2_wayland }}" \

@@ -32,6 +32,25 @@ Upstream's bilingual runtime strings are deliberately preserved. Installers call
 string unless the locale is `zh*`. Keeping both halves means Chinese still works for `zh`
 locales, and it keeps merges with upstream small.
 
+## RootFS composition
+
+The image is trimmed compared with upstream. These were unconditional before and are now opt-in
+flags, or gone:
+
+| Component | Before | Now |
+| --- | --- | --- |
+| Google Chrome | installed in every image | `enable_chrome`, default `false` |
+| USB manager (pulls python3/PyQt5) | installed in every image | `enable_usb_manager`, default `false` |
+| `fastfetch` | in the base package list | removed |
+| Compression tools | `enable_zip` default `true` | default `false` |
+
+New flags are wired end to end: `ENABLE_chrome_ARG` / `ENABLE_usb_manager_ARG` in every
+Dockerfile, `-j` / `-k` in both build scripts, and `enable_chrome` / `enable_usb_manager`
+inputs in the core, release and all-desktop workflows.
+
+Keeping `enable_mesa` and `enable_yj` on is intentional: they carry GPU acceleration and the
+networking/hardware services the images exist for.
+
 ## Release feeds point at this repository
 
 The subscription indexes (`rootfs_zh.json`, `rootfs_en.json`) and the documentation that

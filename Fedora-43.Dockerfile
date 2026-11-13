@@ -14,6 +14,8 @@ ARG ENABLE_docker_ARG
 ARG ENABLE_srf_ARG
 ARG DISPLAY_BACKEND
 ARG ENABLE_8gen2_wayland_ARG
+ARG ENABLE_chrome_ARG
+ARG ENABLE_usb_manager_ARG
 ARG ENABLE_systemd257_ARG
 ARG USERNAME
 ARG ANLAND_RELEASE_REPOSITORY=Goldzxcbug/droidspaces-package
@@ -61,7 +63,7 @@ RUN chmod +x /usr/local/sbin/install-anland-* /usr/local/sbin/install-mesa /usr/
     ln -s droidspaces-tui /usr/local/bin/ds-tui && \
     dnf install -y --setopt=install_weak_deps=False \
     # Core tool components
-    bash jq dialog coreutils diffutils file findutils grep sed gawk curl wget ca-certificates bash-completion systemd-udev dbus-daemon systemd systemd-pam systemd-resolved fastfetch \
+    bash jq dialog coreutils diffutils file findutils grep sed gawk curl wget ca-certificates bash-completion systemd-udev dbus-daemon systemd systemd-pam systemd-resolved \
     # User-requested base development/editor tools
     git nano sudo \
     # Networking and SSH tools (including the DHCP client)
@@ -130,8 +132,10 @@ RUN if [ "$ENABLE_zh_tz_ARG" = "true" ]; then \
     (userdel -r debian 2>/dev/null || true) && \
     useradd -m -s /bin/bash ${USERNAME} && echo "${USERNAME}:1234" | chpasswd
 
-# Install Droidspaces USB Manager for all Fedora RootFS
-RUN /usr/local/sbin/install-droidspaces-usb-manager --user "${USERNAME}"
+# Optional: the USB manager pulls python3/PyQt5 and a third-party application.
+RUN if [ "$ENABLE_usb_manager_ARG" = "true" ]; then \
+    /usr/local/sbin/install-droidspaces-usb-manager --user "${USERNAME}"; \
+    fi
 
 # Initialize the environment variables file; desktop-specific variables are managed by the matching profile.
 RUN : > /etc/environment
@@ -198,8 +202,10 @@ RUN if [ "$ENABLE_mesa_ARG" = "true" ]; then \
         echo "--> [skipped] Mesa driver installation not enabled"; \
     fi
 
-# Install and configure native ARM64 Google Chrome.
-RUN /usr/local/sbin/configure-chrome "$DESKTOP" "$DISPLAY_BACKEND"
+# Optional: installs Google Chrome (a large download) and its desktop integration.
+RUN if [ "$ENABLE_chrome_ARG" = "true" ]; then \
+    /usr/local/sbin/configure-chrome "$DESKTOP" "$DISPLAY_BACKEND"; \
+    fi
 
 # Fix the DHCP network service configuration inside the container
 RUN mkdir -p /etc/systemd/network && \

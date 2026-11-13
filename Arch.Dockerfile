@@ -10,6 +10,8 @@ ARG ENABLE_yj_ARG
 ARG ENABLE_mesa_ARG
 ARG DISPLAY_BACKEND
 ARG ENABLE_8gen2_wayland_ARG
+ARG ENABLE_chrome_ARG
+ARG ENABLE_usb_manager_ARG
 ARG ENABLE_kfgj_ARG
 ARG ENABLE_zip_ARG
 ARG ENABLE_docker_ARG
@@ -56,7 +58,7 @@ RUN chmod +x /usr/local/sbin/install-anland-* /usr/local/sbin/install-mesa /usr/
     pacman -Su --noconfirm && \
     pacman -S --noconfirm --needed \
     # Core tool components
-    bash jq dialog coreutils diffutils file findutils grep sed gawk curl wget ca-certificates bash-completion dbus systemd pam fastfetch logrotate \
+    bash jq dialog coreutils diffutils file findutils grep sed gawk curl wget ca-certificates bash-completion dbus systemd pam logrotate \
     # User-requested base development/editor tools
     git nano sudo \
     # Networking and SSH tools
@@ -121,8 +123,10 @@ RUN echo "en_US.UTF-8 UTF-8" > /etc/locale.gen && \
     useradd -m -s /bin/bash ${USERNAME} && echo "${USERNAME}:1234" | chpasswd && \
     systemctl enable sshd
 
-# Install Droidspaces USB Manager for all Arch RootFS
-RUN /usr/local/sbin/install-droidspaces-usb-manager --user "${USERNAME}"
+# Optional: the USB manager pulls python3/PyQt5 and a third-party application.
+RUN if [ "$ENABLE_usb_manager_ARG" = "true" ]; then \
+    /usr/local/sbin/install-droidspaces-usb-manager --user "${USERNAME}"; \
+    fi
 
 # Set up a complete systemd user session for the droidspaces su/su -l entries.
 RUN for pam_file in /etc/pam.d/su /etc/pam.d/su-l; do \
@@ -196,8 +200,10 @@ RUN if [ "$ENABLE_mesa_ARG" = "true" ]; then \
         echo "--> [skipped] Mesa driver installation not enabled"; \
     fi
 
-# Install and configure native ARM64 Google Chrome.
-RUN /usr/local/sbin/configure-chrome "$DESKTOP" "$DISPLAY_BACKEND"
+# Optional: installs Google Chrome (a large download) and its desktop integration.
+RUN if [ "$ENABLE_chrome_ARG" = "true" ]; then \
+    /usr/local/sbin/configure-chrome "$DESKTOP" "$DISPLAY_BACKEND"; \
+    fi
 
 # Fix the DHCP network service configuration inside the container
 RUN mkdir -p /etc/systemd/network && \

@@ -15,6 +15,8 @@ ARG ENABLE_docker_ARG
 ARG ENABLE_srf_ARG
 ARG ENABLE_nosnap_ARG
 ARG ENABLE_systemd257_ARG
+ARG ENABLE_chrome_ARG
+ARG ENABLE_usb_manager_ARG
 ARG USERNAME
 ######################################################
 
@@ -83,7 +85,7 @@ RUN sed -i 's/Components: main/Components: main restricted universe multiverse/g
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     # Core tool components
-    bash jq dialog coreutils diffutils file findutils grep sed gawk curl wget ca-certificates locales bash-completion udev dbus systemd-sysv systemd-resolved fastfetch \
+    bash jq dialog coreutils diffutils file findutils grep sed gawk curl wget ca-certificates locales bash-completion udev dbus systemd-sysv systemd-resolved \
     # User-requested base development/editor tools
     git nano sudo \
     # Networking and SSH tools
@@ -145,8 +147,10 @@ RUN sed -i '/en_US.UTF-8/s/^# //' /etc/locale.gen && \
     useradd -m -s /bin/bash -G shadow ${USERNAME} && echo "${USERNAME}:1234" | chpasswd && \
     systemctl enable ssh
 
-# Install Droidspaces USB Manager for all Ubuntu RootFS
-RUN /usr/local/sbin/install-droidspaces-usb-manager --user "${USERNAME}"
+# Optional: the USB manager pulls python3/PyQt5 and a third-party application.
+RUN if [ "$ENABLE_usb_manager_ARG" = "true" ]; then \
+    /usr/local/sbin/install-droidspaces-usb-manager --user "${USERNAME}"; \
+    fi
 
 
 # Initialize the environment variables file; desktop-specific variables are managed by the matching profile.
@@ -203,8 +207,10 @@ RUN if [ "$ENABLE_mesa_ARG" = "true" ]; then \
         echo "--> [skipped] Mesa driver installation not enabled"; \
     fi
 
-# Install and configure native ARM64 Google Chrome.
-RUN /usr/local/sbin/configure-chrome "$DESKTOP" "$DISPLAY_BACKEND"
+# Optional: installs Google Chrome (a large download) and its desktop integration.
+RUN if [ "$ENABLE_chrome_ARG" = "true" ]; then \
+    /usr/local/sbin/configure-chrome "$DESKTOP" "$DISPLAY_BACKEND"; \
+    fi
 
 # Fix the DHCP network service configuration inside the container
 RUN mkdir -p /etc/systemd/network && \

@@ -114,9 +114,19 @@ on:
         description: Install compression tools
         required: true
         type: boolean
-        default: true
+        default: false
       enable_docker:
         description: Install Docker
+        required: true
+        type: boolean
+        default: false
+      enable_chrome:
+        description: Install Google Chrome (large download)
+        required: true
+        type: boolean
+        default: false
+      enable_usb_manager:
+        description: Install the USB manager (pulls PyQt5)
         required: true
         type: boolean
         default: false
@@ -153,4 +163,6 @@ jobs:
       enable_kfgj: ${{ inputs.enable_kfgj }}
       enable_zip: ${{ inputs.enable_zip }}
       enable_docker: ${{ inputs.enable_docker }}
+      enable_chrome: ${{ inputs.enable_chrome }}
+      enable_usb_manager: ${{ inputs.enable_usb_manager }}
       wayland_package_repository: ${{ inputs.wayland_package_repository }}

@@ -47,8 +47,10 @@ Choose the target, desktop, display backend, and optional features on the GitHub
 | `enable_binfmt` | `true` / `false`; default `false` | Adds binfmt cross-architecture support; not recommended for Arch. |
 | `enable_yj` | `true` / `false`; default `true` | Improves NAT and Android/Droidspaces hardware recognition. |
 | `enable_kfgj` | `true` / `false`; default `false` | Installs development tools such as compilers, CMake, and Python. |
-| `enable_zip` | `true` / `false`; default `true` | Installs common compression tools. |
+| `enable_zip` | `true` / `false`; default `false` | Installs common compression tools. |
 | `enable_docker` | `true` / `false`; default `false` | Installs Docker packages in the RootFS. |
+| `enable_chrome` | `true` / `false`; default `false` | Installs Google Chrome and its desktop integration; a large download. |
+| `enable_usb_manager` | `true` / `false`; default `false` | Installs the Droidspaces USB manager; pulls python3/PyQt5. |
 | `wayland_package_repository` | Public `owner/repository`; default `Goldzxcbug/droidspaces-package` | Selects the source for prebuilt Anland package Releases. |
 
 For exact defaults, see `.github/workflows/build-rootfs-releases.yml`. `enable_systemd257` is experimental and adds build time. Systems already at systemd 257 or older skip installation; details are in the [script guide](../../scripts/README.md).

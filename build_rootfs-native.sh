@@ -13,7 +13,7 @@ ENABLE_8gen2_wayland="false"
 ENABLE_systemd257="false"
 DISPLAY_BACKEND_INPUT="X11"
 # Parse input arguments (-i specifies the Dockerfile, -v specifies the version)
-while getopts "i:v:K:L:B:P:a:b:c:d:e:f:g:h:n:S:t:u:A:" opt; do
+while getopts "i:v:K:L:B:P:a:b:c:d:e:f:g:h:j:k:n:S:t:u:A:" opt; do
   case $opt in
     i) DOCKERFILE="$OPTARG" ;; # -i assigns the value to the DOCKERFILE variable
     v) VERSION="$OPTARG" ;;    # -v assigns the value to the VERSION variable
@@ -29,6 +29,8 @@ while getopts "i:v:K:L:B:P:a:b:c:d:e:f:g:h:n:S:t:u:A:" opt; do
     e) ENABLE_zip="$OPTARG" ;;
     f) ENABLE_docker="$OPTARG" ;;
     h) ENABLE_srf="$OPTARG" ;; # Input method fcitx5
+    j) ENABLE_chrome="$OPTARG" ;; # Install Google Chrome (optional, large download)
+    k) ENABLE_usb_manager="$OPTARG" ;; # Install the USB manager (optional, pulls PyQt5)
     n) ENABLE_nosnap="$OPTARG" ;; # Ubuntu nosnap
     S) ENABLE_systemd257="$OPTARG" ;; # systemd 257 legacy kernel compatibility
     t) ENABLE_8gen2_wayland="$OPTARG" ;; # Fix Snapdragon 8 Gen 2 Wayland display corruption
@@ -191,6 +193,8 @@ docker buildx build \
   --build-arg ENABLE_zip_ARG="$ENABLE_zip" \
   --build-arg ENABLE_docker_ARG="$ENABLE_docker" \
   --build-arg ENABLE_srf_ARG="$ENABLE_srf" \
+  --build-arg ENABLE_chrome_ARG="$ENABLE_chrome" \
+  --build-arg ENABLE_usb_manager_ARG="$ENABLE_usb_manager" \
   --build-arg ENABLE_nosnap_ARG="$ENABLE_nosnap" \
   --build-arg ENABLE_systemd257_ARG="$ENABLE_systemd257" \
   --build-arg ENABLE_8gen2_wayland_ARG="$ENABLE_8gen2_wayland" \
