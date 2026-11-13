@@ -1,25 +1,25 @@
-name: 发布全桌面 Wayland RootFS
+name: Publish all-desktop Wayland RootFS
 
 on:
   workflow_dispatch:
     inputs:
       sync_cnb:
-        description: 构建后同步中文资产到 CNB
+        description: Sync Chinese assets to CNB after build
         required: false
         default: false
         type: boolean
       sync_cnb_only:
-        description: 跳过构建，仅同步已有 GitHub Release 到 CNB
+        description: Skip the build and only sync an existing GitHub Release to CNB
         required: false
         default: false
         type: boolean
       release_tag:
-        description: 仅同步模式使用的 GitHub Release 标签
+        description: GitHub Release tag used only in sync-only mode
         required: true
         default: droidspaces-rootfs-all-wayland
         type: string
       upload_concurrency:
-        description: CNB 并发上传数
+        description: CNB concurrent uploads
         required: true
         default: 9999
         type: number
@@ -39,7 +39,7 @@ env:
 
 jobs:
   prepare:
-    name: 准备统一版本
+    name: Prepare unified version
     if: ${{ inputs.sync_cnb_only != true }}
     runs-on: ubuntu-latest
     outputs:
@@ -55,7 +55,7 @@ jobs:
           printf 'build_time=%s\n' "$build_time" >> "$GITHUB_OUTPUT"
 
   build-zh:
-    name: 构建中文 RootFS
+    name: Build Chinese RootFS
     if: ${{ inputs.sync_cnb_only != true }}
     needs: prepare
     uses: ./.github/workflows/build-rootfs-core.yml
@@ -84,7 +84,7 @@ jobs:
       publish_release: false
 
   build-en:
-    name: 构建英文 RootFS
+    name: Build English RootFS
     if: ${{ inputs.sync_cnb_only != true }}
     needs: prepare
     uses: ./.github/workflows/build-rootfs-core.yml
@@ -113,20 +113,20 @@ jobs:
       publish_release: false
 
   release:
-    name: 更新 GitHub 滚动 Release
+    name: Update GitHub rolling release
     needs: [prepare, build-zh, build-en]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
 
-      - name: 下载全部构建产物
+      - name: Download all build artifacts
         uses: actions/download-artifact@v7
         with:
           pattern: '*-rootfs'
           merge-multiple: true
           path: release-assets
 
-      - name: 生成双语索引
+      - name: Generate bilingual index
         env:
           BUILD_ID: ${{ needs.prepare.outputs.build_id }}
           BUILD_TIME: ${{ needs.prepare.outputs.build_time }}
@@ -158,25 +158,25 @@ jobs:
 
           The images are built for ARM64 and include Droidspaces desktop auto-start and Qualcomm Adreno/Mesa support. This rolling release is refreshed by the scheduled weekly build.
 
-          ## 中文
+          ## Chinese
 
-          面向 Droidspaces 的 ARM64 滚动 RootFS 集合，覆盖 40 种发行版与桌面环境组合：
-          - 发行版：Debian 13、Ubuntu 26.04、Fedora 43、Fedora 44 和 Arch Linux。
-          - Anland Wayland 桌面：KDE Plasma、KDE Plasma Mobile、GNOME、Anland Next、Niri、Hyprland、Mango 和 Denial。
+          Rolling ARM64 RootFS collection for Droidspaces, covering 40 distribution and desktop combinations:
+          - Distributions: Debian 13, Ubuntu 26.04, Fedora 43, Fedora 44, and Arch Linux.
+          - Anland Wayland desktops: KDE Plasma, KDE Plasma Mobile, GNOME, Anland Next, Niri, Hyprland, Mango, and Denial.
 
-          每种组合均提供中文和英文版本，共 80 个 `.tar.xz` 压缩包。在 Droidspaces RootFS 管理中添加 `rootfs_zh.json` 或 `rootfs_en.json` 订阅清单即可。清单包含每个镜像的版本、文件大小、SHA-256 校验值和下载地址。
+          Each combination is available in Chinese and English, for 80 `.tar.xz` archives in total. Use `rootfs_zh.json` or `rootfs_en.json` as the subscription manifest in Droidspaces RootFS management. The manifests include version, file size, SHA-256 checksum, and download URL for each image.
 
-          镜像面向 ARM64 构建，包含 Droidspaces 桌面自动启动配置和高通 Adreno/Mesa 支持。本滚动 Release 由每周定时构建更新。
+          The images are built for ARM64 and include Droidspaces desktop autostart configuration and Qualcomm Adreno/Mesa support. This rolling release is refreshed by the weekly scheduled build.
           EOF
           {
-            printf '\n## Build information / 构建信息\n\n'
+            printf '\n## Build information\n\n'
             printf '%s\n' \
-              "- Build ID / 构建标识: $BUILD_ID" \
-              "- Build time (UTC) / 构建时间（UTC）: $BUILD_TIME" \
-              "- Release tag / 滚动标签: $RELEASE_TAG" \
-              '- Architecture / 架构: ARM64' \
-              '- Archives / 镜像数量: 80 (40 Chinese + 40 English) / 80 个（中文 40 个 + 英文 40 个）'
-            printf '\n## Direct download index / 全部 RootFS 地址索引\n\n'
+              "- Build ID: $BUILD_ID" \
+              "- Build time (UTC): $BUILD_TIME" \
+              "- Release tag: $RELEASE_TAG" \
+              '- Architecture: ARM64' \
+              '- Archives: 80 (40 Chinese + 40 English)'
+            printf '\n## Direct download index\n\n'
             printf '%s\n' \
               "- [Complete index: rootfs.json](https://github.com/${GITHUB_REPOSITORY}/releases/download/${RELEASE_TAG}/rootfs.json) — all 80 Chinese and English RootFS download addresses." \
               "- [English subscription index: rootfs_en.json](https://github.com/${GITHUB_REPOSITORY}/releases/download/${RELEASE_TAG}/rootfs_en.json)" \
@@ -184,7 +184,7 @@ jobs:
           } >> "$notes_file"
           echo "ROOTFS_RELEASE_NOTES_FILE=$notes_file" >> "$GITHUB_ENV"
 
-      - name: 创建或更新滚动 Release
+      - name: Create or update the rolling release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -192,11 +192,11 @@ jobs:
           release_notes="$(cat "$ROOTFS_RELEASE_NOTES_FILE")"
           tag_ref="repos/$GITHUB_REPOSITORY/git/ref/tags/$RELEASE_TAG"
           if gh api "$tag_ref" >/dev/null 2>&1; then
-            echo "更新已有滚动 tag：$RELEASE_TAG"
+            echo "Updating existing rolling tag: $RELEASE_TAG"
             gh api --method PATCH "repos/$GITHUB_REPOSITORY/git/refs/tags/$RELEASE_TAG" \
               -f sha="$GITHUB_SHA" -F force=true
           else
-            echo "创建滚动 tag：$RELEASE_TAG"
+            echo "Creating rolling tag: $RELEASE_TAG"
             gh api --method POST "repos/$GITHUB_REPOSITORY/git/refs" \
               -f ref="refs/tags/$RELEASE_TAG" -f sha="$GITHUB_SHA"
           fi
@@ -206,13 +206,13 @@ jobs:
           if ! jq -e --arg tag "$RELEASE_TAG" 'any(.[]; .tag_name == $tag)' "$release_list" >/dev/null; then
             gh release create "$RELEASE_TAG" \
               --repo "$GITHUB_REPOSITORY" \
-              --title "Droidspaces 全桌面 Wayland RootFS" \
+              --title "Droidspaces all-desktop Wayland RootFS" \
               --notes "$release_notes" \
               --draft \
               --latest=false
           fi
 
-      - name: 上传 RootFS 资产
+      - name: Upload RootFS assets
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -225,7 +225,7 @@ jobs:
             release-assets/rootfs_zh.json release-assets/rootfs_en.json \
             --repo "$GITHUB_REPOSITORY" --clobber
 
-      - name: 删除旧资产并发布 Release
+      - name: Delete old assets and publish the release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -237,7 +237,7 @@ jobs:
           gh api "repos/$GITHUB_REPOSITORY/releases?per_page=100" | jq -ce \
             --arg tag "$RELEASE_TAG" '
               [.[] | select(.tag_name == $tag)]
-              | if length == 1 then .[0] else error("滚动 Release 不唯一") end
+              | if length == 1 then .[0] else error("rolling release is not unique") end
             ' > "$release_json"
           while IFS=$'\t' read -r asset_id asset_name; do
             if ! grep -Fqx -- "$asset_name" "$expected"; then
@@ -246,26 +246,26 @@ jobs:
           done < <(jq -r '.assets[] | [.id, .name] | @tsv' "$release_json")
           gh release edit "$RELEASE_TAG" \
             --repo "$GITHUB_REPOSITORY" \
-            --title "Droidspaces 全桌面 Wayland RootFS" \
+            --title "Droidspaces all-desktop Wayland RootFS" \
             --notes "$release_notes" \
             --draft=false --prerelease=false --latest=false
 
   sync-cnb:
-    name: 同步中文资产到 CNB
+    name: Sync Chinese assets to CNB
     if: ${{ inputs.sync_cnb == true && inputs.sync_cnb_only != true }}
     needs: [prepare, build-zh, build-en]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
 
-      - name: 下载中文 RootFS 构建产物
+      - name: Download Chinese RootFS build artifacts
         uses: actions/download-artifact@v7
         with:
           pattern: '*-zh-rootfs'
           merge-multiple: true
           path: cnb-assets
 
-      - name: 生成 CNB 中文索引
+      - name: Generate CNB Chinese index
         env:
           CNB_REPO: ${{ vars.CNB_REPO }}
         run: |
@@ -277,7 +277,7 @@ jobs:
             --output cnb-assets/rootfs_zh.json
           jq . cnb-assets/rootfs_zh.json > cnb-assets/rootfs.json
 
-      - name: 上传中文资产到 CNB
+      - name: Upload Chinese assets to CNB
         env:
           GH_TOKEN: ${{ github.token }}
           CNB_TOKEN: ${{ secrets.CNB_TOKEN }}
@@ -290,7 +290,7 @@ jobs:
         run: bash scripts/publish-cnb-rootfs.sh "$RELEASE_TAG"
 
   sync-cnb-only:
-    name: 仅同步已有 Release 到 CNB
+    name: Sync only the existing release to CNB
     if: ${{ inputs.sync_cnb_only == true }}
     runs-on: ubuntu-latest
     env:
@@ -298,7 +298,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - name: 同步中文资产到 CNB
+      - name: Sync Chinese assets to CNB
         env:
           GH_TOKEN: ${{ github.token }}
           CNB_TOKEN: ${{ secrets.CNB_TOKEN }}

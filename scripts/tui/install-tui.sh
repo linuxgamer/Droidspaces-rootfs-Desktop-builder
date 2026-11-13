@@ -30,29 +30,51 @@ declare -a ASSET_ROLES=()
 declare -a ASSET_TARGETS=()
 declare -a SELECTED_INDEXES=()
 
+# Every user-facing string is passed as a (Chinese, English) pair to msg().
+# Non-Chinese locales get the English half, which is this fork's default.
+UI_LANG="en"
+
+detect_language() {
+    local locale_name="${LC_ALL:-${LC_MESSAGES:-${LANG:-C}}}"
+    locale_name="${locale_name,,}"
+    if [[ "$locale_name" == zh* ]]; then
+        UI_LANG="zh"
+    fi
+}
+
+msg() {
+    if [[ "$UI_LANG" == "zh" ]]; then
+        printf '%s' "${1:-}"
+    else
+        printf '%s' "${2:-}"
+    fi
+}
+
+# A call may pass one argument when the message is not localized; ${2:-$1} makes
+# the English half fall back to the single argument instead of printing nothing.
 die() {
-    printf 'install-tui: %s\n' "$1" >&2
+    printf 'install-tui: %s\n' "$(msg "$1" "${2:-$1}")" >&2
     exit 1
 }
 
 log() {
-    printf '[droidspaces-tui] %s\n' "$1"
+    printf '[droidspaces-tui] %s\n' "$(msg "$1" "${2:-$1}")"
 }
 
 usage() {
     cat <<'EOF'
-用法: install-tui.sh [选项]
+Usage: install-tui.sh [options]
 
-安装或更新 Droidspaces TUI 及其管理的安装脚本。
+Install or update the Droidspaces TUI and the install scripts it manages.
 
-  --source auto|github|proxy|cnb  选择附件下载源（默认：auto）
-  --only tui|scripts|all         只更新 TUI、受管脚本或全部（默认：all）
-  --check                        只检查，不写入系统
-                                 退出码：0=已是最新，2=有更新，1=检查失败
-  -y, --yes                      不询问，直接安装
-  -h, --help                     显示帮助
+  --source auto|github|proxy|cnb  select the asset download source (default: auto)
+  --only tui|scripts|all         update only the TUI, the managed scripts, or all (default: all)
+  --check                        check only, do not write to the system
+                                 exit code: 0=up to date, 2=update available, 1=check failed
+  -y, --yes                      do not prompt, install directly
+  -h, --help                     show this help
 
-固定 Release：
+Pinned Release:
   https://github.com/Goldzxcbug/droidspaces-package/releases/tag/Gold-bug-tui
 EOF
 }
@@ -68,7 +90,7 @@ parse_arguments() {
     while (($# > 0)); do
         case "$1" in
             --source)
-                (($# >= 2)) || die '--source 缺少参数。'
+                (($# >= 2)) || die '--source 缺少参数。' "--source requires an argument."
                 DOWNLOAD_SOURCE="${2,,}"
                 shift 2
                 ;;
@@ -78,7 +100,7 @@ parse_arguments() {
                 shift
                 ;;
             --only)
-                (($# >= 2)) || die '--only 缺少参数。'
+                (($# >= 2)) || die '--only 缺少参数。' "--only requires an argument."
                 UPDATE_SCOPE="${2,,}"
                 shift 2
                 ;;
@@ -99,7 +121,7 @@ parse_arguments() {
                 usage
                 exit 0
                 ;;
-            *) die "不支持的参数：$1" ;;
+            *) die "不支持的参数：$1" "Unsupported option: $1" ;;
         esac
     done
 
@@ -110,18 +132,18 @@ parse_arguments() {
     esac
     case "$DOWNLOAD_SOURCE" in
         auto|github|proxy|cnb) ;;
-        *) die "不支持的下载源：$DOWNLOAD_SOURCE" ;;
+        *) die "不支持的下载源：$DOWNLOAD_SOURCE" "Unsupported download source: $DOWNLOAD_SOURCE" ;;
     esac
     case "$UPDATE_SCOPE" in
         tui|scripts|all) ;;
-        *) die "不支持的更新范围：$UPDATE_SCOPE" ;;
+        *) die "不支持的更新范围：$UPDATE_SCOPE" "Unsupported update scope: $UPDATE_SCOPE" ;;
     esac
 }
 
 require_commands() {
     local command_name
     for command_name in awk bash chmod cp curl date dirname install ln mkdir mktemp mv readlink rm rmdir sha256sum stat; do
-        command -v "$command_name" >/dev/null 2>&1 || die "缺少命令：$command_name"
+        command -v "$command_name" >/dev/null 2>&1 || die "缺少命令：$command_name" "Missing command: $command_name"
     done
 }
 
@@ -131,13 +153,13 @@ json_parser_available() {
 
 ensure_root() {
     ((EUID == 0)) && return
-    command -v sudo >/dev/null 2>&1 || die '安装需要 root 权限，且系统未安装 sudo。'
+    command -v sudo >/dev/null 2>&1 || die '安装需要 root 权限，且系统未安装 sudo。' "Installing requires root privileges and sudo is not installed."
     exec sudo --preserve-env=LANG,LC_ALL,LC_MESSAGES -- bash "$SCRIPT_PATH" "${ORIGINAL_ARGUMENTS[@]}"
 }
 
 require_script_file() {
     if [[ -z "${BASH_SOURCE[0]:-}" || -d "$SCRIPT_PATH" ]]; then
-        die "无法通过管道运行本脚本；请先下载脚本再运行，例如 curl -fsSLO $GITHUB_DOWNLOAD_BASE/$RELEASE_TAG/install-tui.sh && sudo bash install-tui.sh。Cannot run through a pipe; download the script first, e.g. curl -fsSLO $GITHUB_DOWNLOAD_BASE/$RELEASE_TAG/install-tui.sh && sudo bash install-tui.sh."
+        die "无法通过管道运行本脚本；请先下载脚本再运行，例如 curl -fsSLO $GITHUB_DOWNLOAD_BASE/$RELEASE_TAG/install-tui.sh && sudo bash install-tui.sh。Cannot run through a pipe; download the script first, e.g. curl -fsSLO $GITHUB_DOWNLOAD_BASE/$RELEASE_TAG/install-tui.sh && sudo bash install-tui.sh." "Cannot run through a pipe; download the script first, e.g. curl -fsSLO $GITHUB_DOWNLOAD_BASE/$RELEASE_TAG/install-tui.sh && sudo bash install-tui.sh."
     fi
 }
 
@@ -162,15 +184,15 @@ release_asset_row() {
     local metadata="$1" asset_name="$2"
     if command -v jq >/dev/null 2>&1; then
         jq -er --arg tag "$RELEASE_TAG" --arg name "$asset_name" '
-            if .tag_name != $tag then error("Release tag 不匹配")
-            elif .draft != false then error("Release 仍是草稿")
+            if .tag_name != $tag then error("Release tag mismatch")
+            elif .draft != false then error("Release is still a draft")
             else . end
             | [.assets[] | select(.name == $name)]
-            | if length != 1 then error("附件缺失或不唯一: " + $name)
+            | if length != 1 then error("Asset missing or not unique: " + $name)
               else .[0] end
             | if (.digest | type) != "string" or
                  (.digest | test("^sha256:[0-9A-Fa-f]{64}$") | not)
-              then error("附件缺少有效的 SHA-256: " + $name)
+              then error("Asset is missing a valid SHA-256: " + $name)
               else [.id, (.digest | ascii_downcase | sub("^sha256:"; "")), .size, .updated_at] | @tsv
               end
         ' "$metadata"
@@ -184,14 +206,14 @@ path, expected_tag, expected_name = sys.argv[1:]
 with open(path, "r", encoding="utf-8") as stream:
     release = json.load(stream)
 if release.get("tag_name") != expected_tag or release.get("draft") is not False:
-    raise SystemExit("Release tag 不匹配或仍是草稿")
+    raise SystemExit("Release tag mismatch or still a draft")
 assets = [item for item in release.get("assets", []) if item.get("name") == expected_name]
 if len(assets) != 1:
-    raise SystemExit("附件缺失或不唯一: " + expected_name)
+    raise SystemExit("Asset missing or not unique: " + expected_name)
 asset = assets[0]
 digest = asset.get("digest")
 if not isinstance(digest, str) or not re.fullmatch(r"sha256:[0-9A-Fa-f]{64}", digest):
-    raise SystemExit("附件缺少有效的 SHA-256: " + expected_name)
+    raise SystemExit("Asset is missing a valid SHA-256: " + expected_name)
 print("\t".join((str(asset["id"]), digest[7:].lower(), str(asset["size"]), asset["updated_at"])))
 PY
     fi
@@ -200,7 +222,7 @@ PY
 download_cnb_manifest_to() {
     local output="$1" manifest_size
 
-    log "从 CNB 下载 $MANIFEST_NAME"
+    log "从 CNB 下载 $MANIFEST_NAME" "Downloading $MANIFEST_NAME from CNB"
     download_from_url "$CNB_DOWNLOAD_BASE/$RELEASE_TAG/$MANIFEST_NAME" "$output" || return 1
     manifest_size="$(stat -c '%s' "$output")" || return 1
     [[ "$manifest_size" =~ ^[0-9]+$ && "$manifest_size" -gt 0 && \
@@ -256,7 +278,7 @@ download_asset() {
         esac
         url="$base/$RELEASE_TAG/$asset_name"
         rm -f -- "$output"
-        log "从 $source_name 下载 $asset_name"
+        log "从 $source_name 下载 $asset_name" "Downloading $asset_name from $source_name"
         if ! download_from_url "$url" "$output"; then
             continue
         fi
@@ -265,7 +287,7 @@ download_asset() {
         if [[ "$actual_size" == "$expected_size" && "$actual_sha" == "$expected_sha" ]]; then
             return 0
         fi
-        printf '附件校验失败：%s（来源：%s）\n' "$asset_name" "$source_name" >&2
+        printf 'Asset verification failed: %s (source: %s)\n' "$asset_name" "$source_name" >&2
     done
     return 1
 }
@@ -288,22 +310,22 @@ parse_manifest() {
         [[ -n "$line" ]] || continue
         IFS=$'\t' read -r sha size role target asset extra <<< "$line"
         [[ -z "${extra:-}" && "$sha" =~ ^[0-9a-f]{64}$ && "$size" =~ ^[0-9]+$ ]] || \
-            die 'TUI 清单包含无效记录。'
-        case "$role" in tui|bootstrap|installer) ;; *) die "TUI 清单包含无效类型：$role" ;; esac
-        safe_asset_name "$asset" || die "TUI 清单包含不安全的附件名：$asset"
+            die 'TUI 清单包含无效记录。' "The TUI manifest contains an invalid record."
+        case "$role" in tui|bootstrap|installer) ;; *) die "TUI 清单包含无效类型：$role" "The TUI manifest contains an invalid role: $role" ;; esac
+        safe_asset_name "$asset" || die "TUI 清单包含不安全的附件名：$asset" "The TUI manifest contains an unsafe asset name: $asset"
         case "$asset:$role:$target" in
             "droidspaces-tui.sh:tui:$TUI_TARGET"|"droidspaces-gpu.sh:tui:/usr/local/bin/droidspaces-gpu"|"install-tui.sh:bootstrap:-") ;;
             install-*.sh:installer:/usr/local/sbin/install-*)
                 [[ "$target" == "/usr/local/sbin/${asset%.sh}" ]] || \
-                    die "安装脚本与目标路径不匹配：$asset"
+                    die "安装脚本与目标路径不匹配：$asset" "Install script does not match its target path: $asset"
                 ;;
-            *) die "TUI 清单包含不允许的安装映射：$asset" ;;
+            *) die "TUI 清单包含不允许的安装映射：$asset" "The TUI manifest contains a disallowed install mapping: $asset" ;;
         esac
         if [[ "$role" != bootstrap ]]; then
-            safe_target_path "$target" || die "TUI 清单包含不安全的目标路径：$target"
+            safe_target_path "$target" || die "TUI 清单包含不安全的目标路径：$target" "The TUI manifest contains an unsafe target path: $target"
         fi
-        [[ -z "${seen_assets[$asset]:-}" ]] || die "TUI 清单重复附件：$asset"
-        [[ -z "${seen_targets[$target]:-}" ]] || die "TUI 清单重复目标：$target"
+        [[ -z "${seen_assets[$asset]:-}" ]] || die "TUI 清单重复附件：$asset" "Duplicate asset in the TUI manifest: $asset"
+        [[ -z "${seen_targets[$target]:-}" ]] || die "TUI 清单重复目标：$target" "Duplicate target in the TUI manifest: $target"
         seen_assets["$asset"]=1
         seen_targets["$target"]=1
         ASSET_SHA256+=("$sha")
@@ -314,12 +336,12 @@ parse_manifest() {
     done < "$MANIFEST_PATH"
 
     [[ "$format" == 1 && "$tag" == "$RELEASE_TAG" && "$seen_header" == true ]] || \
-        die 'TUI 清单格式或 Release tag 无效。'
-    ((${#ASSET_NAMES[@]} >= 2)) || die 'TUI 清单没有包含必要脚本。'
+        die 'TUI 清单格式或 Release tag 无效。' "Invalid TUI manifest format or Release tag."
+    ((${#ASSET_NAMES[@]} >= 2)) || die 'TUI 清单没有包含必要脚本。' "The TUI manifest does not include the required scripts."
     [[ "${seen_assets[droidspaces-tui.sh]:-}" == 1 && \
-       "${seen_assets[install-tui.sh]:-}" == 1 ]] || die 'TUI 清单缺少核心脚本。'
-    # GPU 脚本属于可选项：旧版清单没有它也能正常工作。清单一旦包含它，
-    # 上面的资产名/角色/目标映射与重复检查已经保证记录唯一且合法。
+       "${seen_assets[install-tui.sh]:-}" == 1 ]] || die 'TUI 清单缺少核心脚本。' "The TUI manifest is missing the core script."
+    # The GPU script is optional: older manifests work without it. Once a manifest includes it,
+    # the asset name/role/target mapping and duplicate checks above already guarantee one valid record.
 }
 
 reset_manifest_state() {
@@ -338,7 +360,7 @@ load_github_manifest() {
 
     reset_manifest_state
     json_parser_available || return 1
-    log "读取 GitHub Release：$RELEASE_TAG"
+    log "读取 GitHub Release：$RELEASE_TAG" "Reading GitHub Release: $RELEASE_TAG"
     fetch_release_metadata "$API_BEFORE" || return 1
     manifest_row="$(release_asset_row "$API_BEFORE" "$MANIFEST_NAME")" || return 1
     IFS=$'\t' read -r manifest_id manifest_sha manifest_size manifest_updated <<< "$manifest_row"
@@ -351,7 +373,7 @@ load_github_manifest() {
         IFS=$'\t' read -r asset_id asset_sha asset_size asset_updated <<< "$row"
         [[ "$asset_sha" == "${ASSET_SHA256[$index]}" && \
            "$asset_size" == "${ASSET_SIZES[$index]}" ]] || \
-            die "Release API 与 TUI 清单不一致：${ASSET_NAMES[$index]}"
+            die "Release API 与 TUI 清单不一致：${ASSET_NAMES[$index]}" "Release API and TUI manifest disagree: ${ASSET_NAMES[$index]}"
     done
     METADATA_SOURCE=github
 }
@@ -401,18 +423,18 @@ verify_release_unchanged() {
     for index in "$@"; do
         before="$(release_asset_row "$API_BEFORE" "${ASSET_NAMES[$index]}")"
         after="$(release_asset_row "$API_AFTER" "${ASSET_NAMES[$index]}")"
-        [[ "$before" == "$after" ]] || die "下载期间 Release 附件发生变化：${ASSET_NAMES[$index]}"
+        [[ "$before" == "$after" ]] || die "下载期间 Release 附件发生变化：${ASSET_NAMES[$index]}" "Release assets changed during download: ${ASSET_NAMES[$index]}"
     done
     before="$(release_asset_row "$API_BEFORE" "$MANIFEST_NAME")"
     after="$(release_asset_row "$API_AFTER" "$MANIFEST_NAME")"
-    [[ "$before" == "$after" ]] || die '下载期间 TUI 清单发生变化，请重试。'
+    [[ "$before" == "$after" ]] || die '下载期间 TUI 清单发生变化，请重试。' "The TUI manifest changed during download; try again."
 }
 
 confirm_install() {
     local answer
     [[ "$ASSUME_YES" == true ]] && return
-    [[ -t 0 ]] || die '非交互环境请使用 --yes。'
-    printf '将更新 %s 项，是否继续？ [y/N]: ' "$CHANGED_COUNT"
+    [[ -t 0 ]] || die '非交互环境请使用 --yes。' "Use --yes in a non-interactive environment."
+    printf 'Update %s item(s)? [y/N]: ' "$CHANGED_COUNT"
     IFS= read -r answer || exit 1
     case "${answer,,}" in y|yes|1|是) ;; *) exit 0 ;; esac
 }
@@ -494,13 +516,14 @@ install_updates() {
     if ((${#backup_targets[@]} == 0)); then
         rmdir --ignore-fail-on-non-empty "$backup_dir" 2>/dev/null || true
     else
-        log "旧文件已备份到 $backup_dir"
+        log "旧文件已备份到 $backup_dir" "Old files backed up to $backup_dir"
     fi
 }
 
 main() {
     local index asset_sha asset_size manifest_after before_sha after_sha
 
+    detect_language
     parse_arguments "$@"
     require_script_file
     require_commands
@@ -516,32 +539,32 @@ main() {
 
     case "$DOWNLOAD_SOURCE" in
         cnb)
-            load_cnb_manifest || die '无法从 CNB 下载并解析 TUI 清单。'
+            load_cnb_manifest || die '无法从 CNB 下载并解析 TUI 清单。' "Could not download and parse the TUI manifest from CNB."
             ;;
         auto)
             if ! load_github_manifest; then
-                log '警告：GitHub Release 元数据不可用，将改用 CNB 清单（不经 GitHub Release API 校验）。'
+                log '警告：GitHub Release 元数据不可用，将改用 CNB 清单（不经 GitHub Release API 校验）。' "Warning: GitHub Release metadata is unavailable; falling back to the CNB manifest (not validated against the GitHub Release API)."
                 log 'Warning: GitHub Release metadata is unavailable; falling back to the CNB manifest without GitHub Release API verification.'
                 DOWNLOAD_SOURCE=cnb
-                load_cnb_manifest || die '无法从 GitHub 或 CNB 取得 TUI 清单。'
+                load_cnb_manifest || die '无法从 GitHub 或 CNB 取得 TUI 清单。' "Could not obtain the TUI manifest from GitHub or CNB."
             fi
             ;;
         github|proxy)
-            load_github_manifest || die '无法取得经过 GitHub Release API 校验的 TUI 清单。'
+            load_github_manifest || die '无法取得经过 GitHub Release API 校验的 TUI 清单。' "Could not obtain a TUI manifest validated by the GitHub Release API."
             ;;
     esac
 
     if ((CHANGED_COUNT == 0)); then
-        log "所选范围已经是 $RELEASE_TAG 的最新版本。"
+        log "所选范围已经是 $RELEASE_TAG 的最新版本。" "The selected scope is already up to date with $RELEASE_TAG."
         exit 0
     fi
-    log "发现 $CHANGED_COUNT 项需要安装或更新。"
+    log "发现 $CHANGED_COUNT 项需要安装或更新。" "Found $CHANGED_COUNT item(s) to install or update."
     if [[ "$CHECK_ONLY" == true ]]; then
         for index in "${SELECTED_INDEXES[@]}"; do
             printf '  %s -> %s\n' "${ASSET_NAMES[$index]}" "${ASSET_TARGETS[$index]}"
         done
-        aliases_need_update && printf '  %s\n' '命令别名 dstui / ds-tui'
-        # 2 表示“检查成功且存在可用更新”，供 TUI 区分已是最新与检查失败。
+        aliases_need_update && printf '  %s\n' 'Command aliases dstui / ds-tui'
+        # 2 means "check succeeded and an update is available", letting the TUI tell up-to-date from a failed check.
         exit 2
     fi
     confirm_install
@@ -551,9 +574,9 @@ main() {
         asset_size="${ASSET_SIZES[$index]}"
         download_asset "${ASSET_NAMES[$index]}" "$asset_sha" "$asset_size" \
             "$WORK_DIR/assets/${ASSET_NAMES[$index]}" || \
-            die "无法下载并校验附件：${ASSET_NAMES[$index]}"
+            die "无法下载并校验附件：${ASSET_NAMES[$index]}" "Could not download and verify the asset: ${ASSET_NAMES[$index]}"
         bash -n "$WORK_DIR/assets/${ASSET_NAMES[$index]}" || \
-            die "脚本语法检查失败：${ASSET_NAMES[$index]}"
+            die "脚本语法检查失败：${ASSET_NAMES[$index]}" "Script syntax check failed: ${ASSET_NAMES[$index]}"
     done
 
     if [[ "$METADATA_SOURCE" == github ]]; then
@@ -562,14 +585,14 @@ main() {
     else
         manifest_after="$WORK_DIR/${MANIFEST_NAME}.after"
         download_cnb_manifest_to "$manifest_after" || \
-            die '无法重新读取 CNB TUI 清单。'
+            die '无法重新读取 CNB TUI 清单。' "Could not re-read the CNB TUI manifest."
         before_sha="$(sha256sum "$MANIFEST_PATH" | awk '{print $1}')"
         after_sha="$(sha256sum "$manifest_after" | awk '{print $1}')"
         [[ "$before_sha" == "$after_sha" ]] || \
-            die '下载期间 CNB TUI 清单发生变化，请重试。'
+            die '下载期间 CNB TUI 清单发生变化，请重试。' "The CNB TUI manifest changed during download; try again."
     fi
     install_updates
-    log "安装完成。运行 dstui 或 ds-tui 即可打开工具箱。"
+    log "安装完成。运行 dstui 或 ds-tui 即可打开工具箱。" "Installation complete. Run dstui or ds-tui to open the toolbox."
 }
 
 main "$@"

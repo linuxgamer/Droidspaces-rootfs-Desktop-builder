@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Mesa 源仓库：https://github.com/lfdevs/mesa-for-android-container
-# 媒体解码源仓库：https://github.com/Re-s/droidspaces-media-decode
-# 分发地址：https://github.com/Goldzxcbug/droidspaces-package/releases/tag/mesa-for-android-container
-# 安装面向 Android 容器的 ARM64 Mesa 构建。
-# 同时安装 droidspaces-media-decode 发布的 MediaCodec VA-API 驱动。
-# 根据 /etc/os-release 选择 Mesa 归档格式和包管理器。
+# Mesa source repository: https://github.com/lfdevs/mesa-for-android-container
+# Media decode source repository: https://github.com/Re-s/droidspaces-media-decode
+# Distribution address: https://github.com/Goldzxcbug/droidspaces-package/releases/tag/mesa-for-android-container
+# Installs ARM64 Mesa builds for Android containers.
+# Also installs the MediaCodec VA-API driver published by droidspaces-media-decode.
+# Selects the Mesa archive format and package manager from /etc/os-release.
 readonly RELEASE_REPOSITORY="Goldzxcbug/droidspaces-package"
 readonly CNB_RELEASE_REPOSITORY="goldzxcbug/droidspaces-package"
 readonly DISTRIBUTION_TAG="mesa-for-android-container"
@@ -570,8 +570,8 @@ download_manifest_for_source() {
     download_file "$manifest_url" "$destination" true
 }
 
-# 分发清单是 Release 中的普通资产，读取它不消耗 GitHub API 配额；
-# 构建矩阵并发很高，走 api.github.com 会因匿名配额（60 次/小时/IP）被限流。
+# The distribution manifest is a regular Release asset; reading it consumes no GitHub API quota;
+# the build matrix runs at high concurrency, so api.github.com would rate-limit anonymous quota (60/hour/IP).
 parse_distribution_manifest() {
     local manifest_file="$1"
     local manifest_size rows checksum size asset archive_name="" canonical_base
@@ -639,9 +639,9 @@ parse_distribution_manifest() {
     MEDIA_CHECKSUMS_DOWNLOAD_URL="$canonical_base/$MEDIA_CHECKSUMS_NAME"
 }
 
-# 三个下载源都只读取各自 Release 上的分发清单：清单是普通资产，
-# 不消耗 GitHub API 配额，避免 GitHub 托管 runner 共享出口 IP 时被 403 限流。
-# 清单本身仍提供每个资产的 SHA-256 与大小，并继续与随包 SHA256SUMS 交叉校验。
+# All three download sources read only the distribution manifest on their own Release: it is a regular asset,
+# so it consumes no GitHub API quota and avoids 403 rate limiting when GitHub-hosted runners share egress IPs.
+# The manifest still provides each asset SHA-256 and size, and is cross-checked against the bundled SHA256SUMS.
 resolve_release_asset() {
     local source_name
 
@@ -655,8 +655,8 @@ resolve_release_asset() {
         "Could not download the Mesa distribution manifest from ${source_name}."
     parse_distribution_manifest "$MESA_MANIFEST_FILE"
 
-    # 代理源转发的是 GitHub 内容，要求与 GitHub 权威清单逐字节一致；
-    # CNB 镜像独立托管，沿用原有的清单自校验模型。
+    # The proxy source forwards GitHub content, so it must match the authoritative GitHub manifest byte for byte;
+    # the CNB mirror is hosted independently and keeps the original self-verifying manifest model.
     if [[ "$DOWNLOAD_SOURCE" == "2" ]]; then
         AUTHORITATIVE_MANIFEST_FILE="$WORK_DIR/${DISTRIBUTION_MANIFEST_NAME}.github"
         download_manifest_for_source 1 "$AUTHORITATIVE_MANIFEST_FILE" || die \
@@ -839,7 +839,7 @@ probe_download_source() {
     local -a probe_command
 
     probe_url="$(distribution_manifest_url_for_source "$source")" || return 1
-    # 仅探测第一个字节；Mesa 资产远大于 install-anland-kde.sh 测速使用的清单。
+    # Probe only the first byte; Mesa assets are far larger than the manifest used for latency checks in install-anland-kde.sh.
     if command -v curl >/dev/null 2>&1; then
         if latency="$(curl -fsSL --range 0-0 \
             --connect-timeout "$SOURCE_PROBE_TIMEOUT_SECONDS" \
@@ -952,8 +952,8 @@ release_digest_sha256() {
     printf '%s' "${BASH_REMATCH[1],,}"
 }
 
-# 媒体解码驱动的资产名、SHA-256 与大小同样来自分发清单，
-# 因此这里不再查询 api.github.com。
+# The media decode driver asset name, SHA-256 and size also come from the distribution manifest,
+# so api.github.com is no longer queried here.
 resolve_media_decode_release() {
     release_digest_sha256 "$MEDIA_DRIVER_RELEASE_DIGEST" >/dev/null || die \
         "媒体解码驱动 Release 返回了无效的驱动 SHA-256 摘要。" \
@@ -1225,9 +1225,9 @@ write_dnf_config_with_managed_block() {
     rewrite_without_managed_block \
         "$input_file" "$stripped_file" "$DNF_MANAGED_BEGIN" "$DNF_MANAGED_END" || return 1
 
-    # DNF 会把兼容 yum 的 exclude 别名与 excludepkgs 绑定到同一个追加列表。
-    # 使用不同键可以避免 INI 解析器替换重复键，同时兼容 Anland 的
-    # excludepkgs 规则。
+    # DNF binds the yum-compatible exclude alias and excludepkgs to the same append list.
+    # Using different keys keeps the INI parser from replacing a duplicate key while staying compatible with Anland's
+    # excludepkgs rules.
     awk -v begin="$DNF_MANAGED_BEGIN" -v end="$DNF_MANAGED_END" \
         -v excludes="$excluded_packages" '
         function contains(value, wanted, normalized, count, tokens, i) {
@@ -1422,8 +1422,8 @@ install_arch_packages() {
     pacman_config="$WORK_DIR/pacman.conf"
     cp -p "$PACMAN_CONFIG" "$pacman_config"
 
-    # Mesa Release 软件包有意不签名，因此仅在此临时 Pacman 配置中
-    # 放宽签名策略。
+    # Mesa Release packages are intentionally unsigned, so only this temporary Pacman config
+    # relaxes the signature policy.
     if grep -Eq '^[[:space:]]*#?[[:space:]]*SigLevel[[:space:]]*=' "$pacman_config"; then
         sed -i -E 's/^[[:space:]]*#?[[:space:]]*SigLevel[[:space:]]*=.*/SigLevel = Never/' "$pacman_config"
     elif grep -qE '^\[options\][[:space:]]*$' "$pacman_config"; then

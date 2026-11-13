@@ -20,7 +20,7 @@ write_rootfs_config() {
     [[ "$gpu_enabled" == true ]] && gpu=1
 
     {
-        printf '%s\n' '# Droidspaces 推荐配置'
+        printf '%s\n' '# Droidspaces recommended configuration'
         printf 'enable_anland=%s\nenable_termux_x11=%s\nenable_pulseaudio=%s\n' "$anland" "$x11" "$pulse"
         printf 'allow_userns=%s\nenable_gpu_mode=%s\n' "$userns" "$gpu"
         if [[ "$zh_tz_enabled" == true ]]; then
@@ -46,7 +46,7 @@ package_rootfs_with_config() (
     trap 'rm -rf "$config_dir"; if [[ -n "$pending_output" ]]; then rm -f "$pending_output"; fi' EXIT
     write_rootfs_config "$config_dir/container.config" "$@"
 
-    # 重建后的基础镜像可能已包含推荐配置；仅保留本次构建的设置。
+    # The rebuilt base image may already contain a recommended configuration; keep only this build's settings.
     tar -tf "$archive" > "$config_dir/members"
     for member in container.config ./container.config container.config/ ./container.config/; do
         if grep -Fxq -- "$member" "$config_dir/members"; then
@@ -57,14 +57,14 @@ package_rootfs_with_config() (
         tar --delete -f "$archive" -- "${old_config[@]}"
     fi
 
-    # USTAR 可将配置放在第一个物理文件头中，避免前置 PAX 文件头。
+    # USTAR can place the configuration in the first physical file header, avoiding a leading PAX header.
     tar --format=ustar --owner=0 --group=0 --numeric-owner \
         -cf "$config_dir/config.tar" -C "$config_dir" container.config
     config_size=$(stat -c %s "$config_dir/container.config")
     config_blocks=$((1 + (config_size + 511) / 512))
     pending_output=$(mktemp "${output}.tmp.XXXXXX")
-    # 略去小型 tar 归档的结束块，并将两部分直接流式传入 XZ。这样可避免再生成一份
-    # 未压缩的 rootfs 副本，同时固定归档成员顺序。
+    # Omit the end blocks of the small tar archive and stream both parts directly into XZ. This avoids
+    # creating another uncompressed RootFS copy while fixing archive member order.
     {
         dd if="$config_dir/config.tar" bs=512 count="$config_blocks" status=none &&
         cat "$archive"

@@ -28,7 +28,7 @@ configure_environment() {
     )
 
     [[ "$backend" == anland-wayland ]] || {
-        echo "$desktop 显示后端无效：$backend" >&2
+        echo "Unsupported $desktop display backend: $backend" >&2
         return 1
     }
     assignments+=("XDG_CURRENT_DESKTOP=$xdg_desktop" "XDG_SESSION_DESKTOP=$xdg_desktop")
@@ -59,12 +59,12 @@ install_dart_deb() {
     install -d -m 0755 /etc/apt/keyrings /etc/apt/sources.list.d
     if ! curl -fsSL https://dl-ssl.google.com/linux/linux_signing_key.pub -o "$keyring"; then
         rm -f -- "$keyring"
-        echo '无法下载 Dart 软件包签名密钥。' >&2
+        echo 'Could not download the Dart package signing key.' >&2
         return 1
     fi
     grep -q 'BEGIN PGP PUBLIC KEY BLOCK' "$keyring" || {
         rm -f -- "$keyring"
-        echo 'Dart 软件包签名密钥格式无效。' >&2
+        echo 'Invalid Dart package signing key format.' >&2
         return 1
     }
     chmod 0644 "$keyring"
@@ -88,14 +88,14 @@ install_dart_fedora() {
     case "$(uname -m)" in
         aarch64|arm64) architecture=arm64 ;;
         x86_64|amd64) architecture=x64 ;;
-        *) echo "Dart SDK 不支持的架构：$(uname -m)" >&2; return 1 ;;
+        *) echo "Unsupported architecture for the Dart SDK: $(uname -m)" >&2; return 1 ;;
     esac
     url="https://storage.googleapis.com/dart-archive/channels/stable/release/latest/sdk/dartsdk-linux-${architecture}-release.zip"
     temporary="$(mktemp -d)"
     dnf install -y --setopt=install_weak_deps=False unzip curl
     if ! curl -fsSL -o "$temporary/dart.zip" "$url"; then
         rm -rf -- "$temporary"
-        echo "无法下载 Dart SDK：$url" >&2
+        echo "Could not download the Dart SDK: $url" >&2
         return 1
     fi
     unzip -q "$temporary/dart.zip" -d /usr/lib/
@@ -135,12 +135,12 @@ install_profile() {
             # matches how Denial declares the dependency for this distribution.
             install_minimal_arch
             ;;
-        *) echo "$desktop 不支持当前发行版：$ID $VERSION_ID" >&2; return 1 ;;
+        *) echo "$desktop does not support this distribution: $ID $VERSION_ID" >&2; return 1 ;;
     esac
 }
 
 case "${1:-install}" in
     install) install_profile ;;
     configure-environment) configure_environment "${2:-}" ;;
-    *) echo "$desktop profile 操作无效：$1" >&2; exit 1 ;;
+    *) echo "Invalid $desktop profile operation: $1" >&2; exit 1 ;;
 esac

@@ -170,8 +170,8 @@ install_pacman_dependencies() {
         log "检测到 systemd 257 兼容状态；保留 Pacman IgnorePkg，且不显式请求 systemd。" \
             "Detected the systemd 257 compatibility state; preserving Pacman IgnorePkg without explicitly requesting systemd."
     else
-        # 普通 Arch 安装自带 systemd；对尚未降级的精简或非 Droidspaces
-        # 环境继续显式声明该依赖。
+        # A regular Arch install ships systemd; for minimal or non-Droidspaces
+        # environments that have not been downgraded, still declare the dependency explicitly.
         packages+=(systemd)
     fi
 
@@ -280,7 +280,7 @@ install_program() {
     install -m 0755 "$SOURCE_DIR/src/usb-passthrough.sh" "$INSTALL_DIR/usb-passthrough.sh"
     install -m 0755 "$SOURCE_DIR/src/usb-storage-passthrough.sh" "$INSTALL_DIR/usb-storage-passthrough.sh"
     
-    # 安装自带图标
+    # Install the bundled icons
     if [[ -d "$SOURCE_DIR/icons" ]]; then
         install -d -m 0755 "$INSTALL_DIR/icons"
         install -m 0644 "$SOURCE_DIR/icons/"*.svg "$INSTALL_DIR/icons/"
@@ -289,10 +289,10 @@ install_program() {
         fi
     fi
 
-    # 上游当前假定使用 Debian 的 /usr/sbin 路径；Debian/Ubuntu、Fedora 和
-    # Arch（包括合并 /usr 的安装）都共用 /usr/bin。
-    # 保留上游对 X11（xcb）后端的偏好，避免 Wayland 兼容问题。
-    # blkid 路径会在运行时通过 BLKID_CMD 动态解析，无需补丁。
+    # Upstream currently assumes Debian's /usr/sbin path; Debian/Ubuntu, Fedora and
+    # Arch (including merged-/usr installs) all share /usr/bin.
+    # Preserve upstream's preference for the X11 (xcb) backend to avoid Wayland compatibility issues.
+    # The blkid path is resolved dynamically at runtime through BLKID_CMD, so no patch is needed.
     sed -i \
         -e 's|"dolphin", path|"xdg-open", path|g' \
         -e 's|请运行: sudo apt install python3-pyqt5|请安装当前发行版的 PyQt5 软件包|g' \
@@ -324,7 +324,7 @@ exec /usr/bin/bash /usr/share/usb-manager/usb-storage-passthrough.sh "$@"
 EOF
     chmod 0755 /usr/bin/usb-storage-passthrough
 
-    # 优先使用自带图标，否则回退到系统主题
+    # Prefer bundled icons, falling back to the system theme
     local icon_path="${INSTALL_DIR}/icons/usb-manager.svg"
     if [[ ! -f "$icon_path" ]]; then
         icon_path="drive-removable-media-usb"
@@ -333,9 +333,9 @@ EOF
     
     cat > /usr/share/applications/usb-manager.desktop <<EOF
 [Desktop Entry]
-Name=USB 管理器
+Name=USB Manager
 Name[en]=USB Manager
-Comment=Droidspaces USB 设备管理器
+Comment=Droidspaces USB Device Manager
 Comment[en]=Droidspaces USB Device Manager
 Exec=/usr/bin/usb-manager
 Icon=${icon_path}
@@ -346,7 +346,7 @@ StartupNotify=false
 EOF
 
     install -d -m 0755 -o "$TARGET_USER" -g "$TARGET_GROUP" "$TARGET_HOME/Desktop"
-    # 若桌面快捷方式已是指向源文件的软链接，先删除再复制，避免 install 报“同一文件”错误
+    # If the desktop shortcut is already a symlink to the source file, remove it before copying so install does not report a same-file error
     if [ -L "$TARGET_HOME/Desktop/usb-manager.desktop" ]; then
         rm -f -- "$TARGET_HOME/Desktop/usb-manager.desktop"
     fi
@@ -373,9 +373,9 @@ configure_permissions() {
     local sudoers_tmp
     sudoers_tmp="$(mktemp -t droidspaces-usb-manager-sudoers.XXXXXXXX)"
 
-    # 让桌面用户加入 ntfsusb 组（gid 1023）。
-    # 新版 ntfs-3g (2026.x) 挂载的 NTFS 卷固定属主为 root:1023 770，
-    # 普通用户加入该组后可直接读写挂载点，无需走 pkexec 认证。
+    # Add the desktop user to the ntfsusb group (gid 1023).
+    # NTFS volumes mounted by newer ntfs-3g (2026.x) are fixed to owner root:1023, mode 770;
+    # once a regular user joins that group they can read and write the mount point directly, without pkexec authentication.
     if command -v groupadd >/dev/null 2>&1; then
         groupadd -g 1023 ntfsusb 2>/dev/null || true
         usermod -a -G 1023 "${TARGET_USER}" 2>/dev/null || true
@@ -384,8 +384,8 @@ configure_permissions() {
     fi
 
     cat > "$sudoers_tmp" <<EOF
-# Droidspaces USB Manager：创建设备节点并挂载可移动介质
-# blkid 同时授权 /usr/bin 与 /usr/sbin 两种布局（不同发行版/版本位置不同）
+# Droidspaces USB Manager: create device nodes and mount removable media
+# blkid is authorized in both /usr/bin and /usr/sbin layouts (the location differs by distribution/version)
 Cmnd_Alias DROIDSPACES_USB_MANAGER = /usr/bin/mount *, /usr/bin/umount *, /usr/bin/mknod *, /usr/bin/chmod *, /usr/bin/mkdir -p /dev/bus/usb/*, /usr/bin/blkid *, /usr/sbin/blkid *, /usr/bin/bash ${INSTALL_DIR}/usb-passthrough.sh
 ${TARGET_USER} ALL=(root) NOPASSWD: DROIDSPACES_USB_MANAGER
 EOF

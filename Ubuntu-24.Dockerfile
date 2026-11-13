@@ -20,7 +20,7 @@ ARG USERNAME
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-# 启用 APT 并行连接、HTTP(S) pipeline 和下载重试
+# Enable APT parallel connections, HTTP(S) pipeline, and download retries
 RUN printf '%s\n' \
     'Acquire::Queue-Mode "host";' \
     'Acquire::http::Pipeline-Depth "10";' \
@@ -28,15 +28,15 @@ RUN printf '%s\n' \
     'Acquire::Retries "3";' \
     > /etc/apt/apt.conf.d/99parallel-downloads
 
-# 优先复制自定义脚本
+# Copy custom scripts first
 COPY scripts/download-firmware /usr/local/bin/
 COPY scripts/nosnap.sh /usr/local/sbin/nosnap
 COPY scripts/systemd257.sh /usr/local/sbin/systemd257
 
-# 将自定义的 bashrc 脚本复制到根文件系统的 profile 目录
+# Copy the custom bashrc script into the RootFS profile directory
 COPY scripts/bashrc.sh /etc/profile.d/ds-aliases.sh
 
-# 通用 Droidspaces USB Manager 安装器
+# Generic Droidspaces USB Manager installer
 COPY scripts/install-usb-manager.sh /usr/local/sbin/install-droidspaces-usb-manager
 COPY scripts/tui/install-anland-kde.sh /usr/local/sbin/install-anland-kde
 COPY scripts/tui/install-anland-gnome.sh /usr/local/sbin/install-anland-gnome
@@ -57,56 +57,56 @@ RUN if [ "$DISPLAY_BACKEND" = "anland-wayland" ]; then \
     fi && \
     rm -f /tmp/Anland-Audio.conf
 
-# 赋予相关脚本可执行权限
+# Make the relevant scripts executable
 RUN chmod +x /usr/local/bin/download-firmware /usr/local/sbin/nosnap /etc/profile.d/ds-aliases.sh /usr/local/sbin/install-anland-* /usr/local/sbin/install-mesa /usr/local/sbin/install-hangover-wine /usr/local/sbin/install-winefonts /usr/local/sbin/install-desktop /usr/local/sbin/configure-desktop /usr/local/sbin/configure-chrome /usr/local/bin/droidspaces-tui /usr/local/bin/droidspaces-gpu /usr/local/bin/start-desktop-session /usr/local/lib/droidspaces/desktops/*.sh && \
     ln -s droidspaces-tui /usr/local/bin/dstui && \
     ln -s droidspaces-tui /usr/local/bin/ds-tui
 
-# Ubuntu 基础镜像默认通过 dpkg path-exclude 跳过 .mo 翻译文件；全局放开，
-# 保证所有桌面 profile 安装的软件带完整语言翻译。
+# The Ubuntu base image skips .mo translation files by default via dpkg path-exclude; re-enable them globally
+# so software installed by every desktop profile ships complete language translations.
 RUN sed -i 's|^path-exclude=/usr/share/locale/\*/LC_MESSAGES/\*.mo|#&|' \
         /etc/dpkg/dpkg.cfg.d/excludes 2>/dev/null || true
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends ca-certificates curl wget && \
     if [ "$ENABLE_nosnap_ARG" = "true" ]; then \
-        echo "--> [开启] nosnap: 正在预配置并移除 Ubuntu Snap..." && \
+        echo "--> [enabled] nosnap: pre-configuring and removing Ubuntu Snap..." && \
         bash /usr/local/sbin/nosnap; \
     else \
-        echo "--> [跳过] 未开启 nosnap"; \
+        echo "--> [skipped] nosnap not enabled"; \
     fi
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-    # 核心工具组件
+    # Core tool components
     bash jq dialog coreutils diffutils file findutils grep sed gawk curl wget ca-certificates locales bash-completion udev dbus systemd-sysv systemd-resolved neofetch \
-    # 用户请求的基础开发/编辑工具
+    # User-requested base development/editor tools
     git nano  sudo \
-    # 网络与 SSH 工具
+    # Networking and SSH tools
     openssh-server net-tools iptables iputils-ping iproute2 dnsutils \
-    # 用于系统监控的 procps 进程工具
+    # procps process tools for system monitoring
     procps \
-    # 核心内核模块支持
+    # Core kernel module support
     kmod tzdata && \
     /usr/local/sbin/install-desktop "$DESKTOP" && \
-    #输入法 fcitx5 (可选)
+    #Input method fcitx5 (optional)
     if [ "$ENABLE_srf_ARG" = "true" ]; then \
         apt-get install -y fcitx5; \
     fi && \
     if [ "$ENABLE_srf_ARG" = "true" ] && [ "$ENABLE_zh_tz_ARG" = "true" ]; then \
         apt-get install -y  fcitx5-chinese-addons; \
     fi && \
-    ## 开发工具集成 (可选)
+    ## Development tools integration (optional)
     if [ "$ENABLE_kfgj_ARG" = "true" ]; then \
         apt-get install -y --no-install-recommends \
         build-essential gcc g++ make cmake autoconf automake libtool pkg-config clang llvm python3 python3-pip python3-dev python3-venv python-is-python3; \
     fi && \
-    ## 压缩工具扩展 (可选)
+    ## Compression tools extension (optional)
     if [ "$ENABLE_zip_ARG" = "true" ]; then \
         apt-get install -y --no-install-recommends \
         zip unzip p7zip-full bzip2 xz-utils tar gzip; \
     fi && \
-    ## docker (可选)
+    ## docker (optional)
     if [ "$ENABLE_docker_ARG" = "true" ]; then \
         apt-get install -y --no-install-recommends \
         docker.io docker-compose-v2; \
@@ -115,7 +115,7 @@ RUN apt-get update && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-# 强制配置使用 iptables-legacy（这是兼容 Android 内核的硬性要求）
+# Force the use of iptables-legacy (a hard requirement for Android kernel compatibility)
 RUN update-alternatives --set iptables /usr/sbin/iptables-legacy && \
     update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy
 
@@ -132,28 +132,28 @@ RUN sed -i '/en_US.UTF-8/s/^# //' /etc/locale.gen && \
         locale-gen && \
         update-locale LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8; \
     fi && \
-    # 配置 SSH 服务（禁用 root 密码登录，但允许常规密码认证）
+    # Configure the SSH service (disable root password login but allow regular password authentication)
     mkdir -p /var/run/sshd && \
     sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin no/' /etc/ssh/sshd_config && \
     sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config && \
-    # 如果容器内存在默认的 debian 用户，则将其连同家目录一起删除
+    # Delete the default debian user, together with its home directory, if present in the container
     (deluser --remove-home ubuntu || true) && \
     useradd -m -s /bin/bash ${USERNAME} && echo "${USERNAME}:1234" | chpasswd && \
     systemctl enable ssh
 
-# 为所有 Ubuntu RootFS 安装 Droidspaces USB Manager
+# Install Droidspaces USB Manager for all Ubuntu RootFS
 RUN /usr/local/sbin/install-droidspaces-usb-manager --user "${USERNAME}"
 
-# 初始化环境变量文件；桌面专属变量由对应 profile 管理。
+# Initialize the environment variables file; desktop-specific variables are managed by the matching profile.
 RUN : > /etc/environment
-# 音频选择
+# Audio selection
 RUN if [ "$PulseAudio" = "socket" ]; then \
         echo "PULSE_SERVER=unix:/tmp/.pulse-socket" >> /etc/environment; \
     elif [ "$PulseAudio" = "tcp" ]; then \
         echo "PULSE_SERVER=tcp:127.0.0.1:4713" >> /etc/environment; \
     fi
 
-# 输入法开机自启动
+# Input method autostart
 COPY scripts/start/ /tmp/droidspaces-start/
 RUN <<'EOF_RUN'
     if [ "$ENABLE_srf_ARG" = "true" ]; then
@@ -194,13 +194,13 @@ EOF_RUN
 RUN if [ "$ENABLE_mesa_ARG" = "true" ]; then \
         /usr/local/sbin/install-mesa --1; \
     else \
-        echo "--> [跳过] 未开启 Mesa 驱动安装"; \
+        echo "--> [skipped] Mesa driver installation not enabled"; \
     fi
 
-# 安装并配置原生 ARM64 Google Chrome。
+# Install and configure native ARM64 Google Chrome.
 RUN /usr/local/sbin/configure-chrome "$DESKTOP" "$DISPLAY_BACKEND"
 
-# 修复容器内的 DHCP 网络服务配置
+# Fix the DHCP network service configuration inside the container
 RUN mkdir -p /etc/systemd/network && \
     cat <<'EOF' > /etc/systemd/network/10-eth-dhcp.network
 [Match]
@@ -216,37 +216,37 @@ UseDomains=yes
 RouteMetric=100
 EOF
 
-# 应用 Android 运行环境兼容性修复（重点针对 Systemd 和 Udev）
+# Apply Android runtime compatibility fixes (mainly for systemd and udev)
 RUN <<'EOF_RUN'
 
-# --- 1. 常规兼容性修复 ---
-# 建立 Android 网络权限组（在 Android 内核上运行 Linux 容器时，必须有这些 GID 才能正常访问网络 socket）
+# --- 1. General compatibility fixes ---
+# Create Android network permission groups (running a Linux container on an Android kernel requires these GIDs to access network sockets)
 grep -q '^aid_inet:' /etc/group     || echo 'aid_inet:x:3003:'    >> /etc/group
 grep -q '^aid_net_raw:' /etc/group || echo 'aid_net_raw:x:3004:' >> /etc/group
 grep -q '^aid_net_admin:' /etc/group || echo 'aid_net_admin:x:3005:' >> /etc/group
 
-# 检查并创建 droidspaces-gpu 组
+# Check for and create the droidspaces-gpu group
 getent group droidspaces-gpu >/dev/null || groupadd -g 786 -r droidspaces-gpu
-# 为 root 用户赋予访问 Android 硬件及网络的权限组
+# Grant root the permission groups for Android hardware and network access
 usermod -a -G aid_inet,aid_net_raw,input,video,tty,droidspaces-gpu root || true
 usermod -a -G aid_inet,aid_net_raw,input,video,tty,sudo,droidspaces-gpu ${USERNAME} || true
 
-# 将 _apt 的主用户组改为 aid_inet，确保 apt 包管理器在 Android 环境下可以正常联网
+# Change the primary group of _apt to aid_inet so the apt package manager can reach the network under Android
 grep -q '^_apt:' /etc/passwd && usermod -g aid_inet _apt || true
 
-# 确保未来通过 adduser 创建的所有新用户，都会被默认加入这些 Android 硬件与网络组
+# Ensure every future user created via adduser is added to these Android hardware and network groups by default
 if [ -f /etc/adduser.conf ]; then
     sed -i '/^EXTRA_GROUPS=/d; /^ADD_EXTRA_GROUPS=/d' /etc/adduser.conf
     echo 'ADD_EXTRA_GROUPS=1' >> /etc/adduser.conf
     echo 'EXTRA_GROUPS="aid_inet aid_net_raw input video tty"' >> /etc/adduser.conf
 fi
 
-# --- 2. 针对 Systemd 的特定修复 ---
-# 屏蔽在 Android 内核下容易引发报错或死锁的阻塞服务
+# --- 2. Systemd-specific fixes ---
+# Mask the blocking services that easily cause errors or deadlocks on the Android kernel
 ln -sf /dev/null /etc/systemd/system/systemd-networkd-wait-online.service
 ln -sf /dev/null /etc/systemd/system/systemd-journald-audit.socket
 
-# 优化 Journald 日志配置（跳过内核审计、KMsg 等 Android 内核不兼容或权限受限的日志源）
+# Tune the Journald logging configuration (skip kernel audit, KMsg, and other log sources that are incompatible with or restricted on the Android kernel)
 cat >> /etc/systemd/journald.conf << 'EOT'
 [Journal]
 ReadKMsg=no
@@ -282,7 +282,7 @@ else
     done
 fi
 
-# 在 systemd-logind 中禁用电源键行为处理（防止容器误拦截或处理宿主机的实体电源按键事件）
+# Disable power key handling in systemd-logind (prevents the container from intercepting or handling the host's physical power key events)
 mkdir -p /etc/systemd/logind.conf.d
 cat > /etc/systemd/logind.conf.d/99-power-key.conf << 'EOF'
 [Login]
@@ -293,8 +293,8 @@ HandlePowerKeyLongPress=ignore
 HandlePowerKeyLongPressHibernate=ignore
 EOF
 
-# 应用 udev 覆盖配置
-# 1. 触发器覆盖：限制 udevadm trigger 的扫描范围（防止冷插拔时全面扫描 Android 宿主机硬件导致卡死或冲突）
+# Apply the udev override configuration
+# 1. Trigger override: limit the scan scope of udevadm trigger (prevents a full scan of Android host hardware on coldplug, which can hang or conflict)
 mkdir -p /etc/systemd/system/systemd-udev-trigger.service.d
 cat > /etc/systemd/system/systemd-udev-trigger.service.d/override.conf << 'EOF'
 [Service]
@@ -302,14 +302,14 @@ ExecStart=
 ExecStart=-/usr/bin/udevadm trigger --subsystem-match=usb --subsystem-match=block --subsystem-match=input --subsystem-match=tty --subsystem-match=net
 EOF
 
-# 2. 针对只读文件系统路径（ConditionPathIsReadWrite）的覆盖，防止 udev 相关服务因为路径只读而报错中断
+# 2. Overrides for read-only filesystem paths (ConditionPathIsReadWrite) so udev-related services do not fail on read-only paths
 for unit in systemd-udevd.service systemd-udev-trigger.service systemd-udev-settle.service systemd-udevd-kernel.socket systemd-udevd-control.socket; do
     mkdir -p "/etc/systemd/system/${unit}.d"
     printf "[Unit]\nConditionPathIsReadWrite=\n" > "/etc/systemd/system/${unit}.d/99-readonly-fix.conf"
 done
 
-# 限制特定的网络服务：只有当容器配置为 NAT 模式时才允许启动
-# 这可以有效防止容器在“主机网络模式（Host Mode）”下运行时破坏手机原本的蜂窝移动数据网络
+# Restrict specific network services: only allow them to start when the container is configured in NAT mode
+# This effectively prevents the container from breaking the phone's cellular data network when running in Host network mode
 for unit in NetworkManager.service dhcpcd.service systemd-resolved.service systemd-networkd.service; do
     if [ -f "$GUEST_SYSTEMD_PATH/$unit" ] || [ -f "/etc/systemd/system/multi-user.target.wants/$unit" ]; then
         mkdir -p "/etc/systemd/system/${unit}.d"
@@ -320,7 +320,7 @@ ExecCondition=/bin/sh -c "grep -qE 'net_mode=(nat|gateway)' /run/droidspaces/con
 EOF
     fi
 done
-# 仅在启用硬件访问时限制 udev 服务启动
+# Only restrict udev service startup when hardware access is enabled
 for unit in systemd-udevd.service systemd-udev-trigger.service systemd-udev-settle.service; do
     if [ -f "$GUEST_SYSTEMD_PATH/$unit" ] || [ -f "/etc/systemd/system/multi-user.target.wants/$unit" ]; then
         mkdir -p "/etc/systemd/system/${unit}.d"
@@ -332,7 +332,7 @@ EOF
     fi
 done
 
-# 针对 Android 环境微调日志轮转（logrotate）的最大容量限制
+# Fine-tune the maximum size limit of log rotation (logrotate) for the Android environment
 if [ -f /etc/logrotate.conf ]; then
     sed -i 's/^#maxsize.*/maxsize 50M/' /etc/logrotate.conf
     if ! grep -q "maxsize 50M" /etc/logrotate.conf; then
@@ -342,7 +342,7 @@ fi
 
 
 
-# 写入修复完成的标记和时间戳
+# Write the completion marker and timestamp for the applied fixes
 echo "Post-extraction fixes applied on $(date)" > /etc/droidspaces
 EOF_RUN
 
@@ -383,15 +383,15 @@ RUN if [ "$ENABLE_binfmt_ARG" = "true" ]; then \
         rm -f /usr/local/bin/qemu-binfmt-register.sh /etc/systemd/system/qemu-binfmt-register.service; \
     fi
 
-# Ubuntu 24.04 的 systemd 低于 257，脚本会自动检测并跳过。
+# Ubuntu 24.04 ships a systemd older than 257, so the script detects that and skips.
 RUN if [ "$ENABLE_systemd257_ARG" = "true" ]; then \
         bash /usr/local/sbin/systemd257; \
     else \
-        echo "--> [跳过] 未启用 systemd 257 旧内核兼容"; \
+        echo "--> [skipped] systemd 257 old-kernel compatibility not enabled"; \
     fi
 
-# 最终清理 APT 包管理器缓存，尽可能缩减镜像层体积
-# 打包前删除仅用于构建的一次性脚本；TUI 和运行时脚本保留。
+# Final APT cache cleanup to shrink the image layers as much as possible
+# Remove one-off scripts used only at build time before packaging; the TUI and runtime scripts are kept.
 RUN rm -f \
         /usr/local/sbin/configure-chrome \
         /usr/local/sbin/configure-desktop \
@@ -404,8 +404,8 @@ RUN rm -f \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-# 阶段 2：将完整的根文件系统导出到 scratch（空白层），以便外部直接提取或打包成 tarfs
+# Stage 2: export the complete RootFS to scratch (a blank layer) so it can be extracted or packed into tarfs directly from outside
 FROM scratch AS export
 
-# 从 customizer 编译阶段将所有定制好的根文件系统内容整体拷贝出来
+# Copy all customized RootFS content out of the customizer build stage as a whole
 COPY --from=customizer / /

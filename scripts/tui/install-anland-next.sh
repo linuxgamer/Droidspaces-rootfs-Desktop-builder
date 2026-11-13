@@ -177,15 +177,15 @@ parse_arguments() {
                 ;;
             -h|--help)
                 cat <<EOF
-用法: $0 [选项]
+Usage: $0 [options]
 
-安装或卸载 Anland Next session 原生软件包。
+Install or uninstall the Anland Next session native packages.
 
-  -1, --1          使用 GitHub
-  -2, --2          使用 gh-proxy.com
-  -3, --3          使用 CNB
-  --uninstall      卸载 anland-session，不删除发行版依赖
-  -h, --help       显示帮助
+  -1, --1          Use GitHub
+  -2, --2          Use gh-proxy.com
+  -3, --3          Use CNB
+  --uninstall      Uninstall anland-session without removing distribution dependencies
+  -h, --help       Show this help
 EOF
                 exit 0
                 ;;

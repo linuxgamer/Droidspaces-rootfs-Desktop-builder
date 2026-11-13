@@ -2,7 +2,7 @@
 set -euo pipefail
 
 usage() {
-  echo "用法：$0 --assets DIR --language zh|en --release-url URL --output FILE" >&2
+  echo "Usage: $0 --assets DIR --language zh|en --release-url URL --output FILE" >&2
   exit 2
 }
 
@@ -118,6 +118,6 @@ for path in "$ASSETS_DIR"/*.tar.xz; do
   entries="$(jq --argjson entry "$entry" '. + [$entry]' <<<"$entries")"
   count=$((count + 1))
 done
-(( count == 40 )) || { echo "期望 40 个 $LANGUAGE 资产，实际找到 $count" >&2; exit 1; }
+(( count == 40 )) || { echo "Expected 40 $LANGUAGE assets, found $count" >&2; exit 1; }
 mkdir -p "${OUTPUT%/*}"
 jq 'sort_by(.distro, .name, .architecture)' <<<"$entries" > "$OUTPUT"

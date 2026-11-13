@@ -2053,7 +2053,7 @@ run_update_check() {
     fi
     printf '%s\n' "$output"
 
-    # 兼容旧版一次性安装器：它们发现更新时仍返回 0，只输出更新列表。
+    # Compatibility with the old one-shot installer: it still returned 0 when it found updates and only printed the update list.
     if ((status == 0)) && [[ "$output" == *"发现 "*"项需要安装或更新"* ]]; then
         status=2
     fi

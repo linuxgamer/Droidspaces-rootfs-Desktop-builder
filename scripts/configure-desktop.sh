@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-#固化启动参数
+# Pin the startup parameters
 set -euo pipefail
 
 desktop="${1:-}"
@@ -76,33 +76,33 @@ EOF
     chmod 0755 "$kate_wrapper"
 }
 
-[[ "$desktop" =~ ^(none|[a-z][a-z0-9-]*)$ ]] || { echo "无效的桌面：$desktop" >&2; exit 1; }
-case "$backend" in x11|anland-wayland) ;; *) echo "无效的显示后端：$backend" >&2; exit 1 ;; esac
-case "$autostart" in true|false) ;; *) echo "无效的桌面自启动值：$autostart" >&2; exit 1 ;; esac
-[[ -n "$username" ]] || { echo "必须指定桌面用户名" >&2; exit 1; }
+[[ "$desktop" =~ ^(none|[a-z][a-z0-9-]*)$ ]] || { echo "Invalid desktop: $desktop" >&2; exit 1; }
+case "$backend" in x11|anland-wayland) ;; *) echo "Invalid display backend: $backend" >&2; exit 1 ;; esac
+case "$autostart" in true|false) ;; *) echo "Invalid desktop autostart value: $autostart" >&2; exit 1 ;; esac
+[[ -n "$username" ]] || { echo "A desktop username must be specified" >&2; exit 1; }
 
 if [[ "$desktop" == none && "$backend" != x11 ]]; then
-    echo "不支持的桌面与显示后端组合：$desktop/$backend" >&2
+    echo "Unsupported desktop and display backend combination: $desktop/$backend" >&2
     exit 1
 fi
 if [[ "$desktop" == kde && "$backend" == x11 && "$ID" =~ ^(arch|archarm|archlinux)$ ]]; then
-    echo "Arch Linux 不支持 KDE X11；请使用 Anland Wayland。" >&2
+    echo "Arch Linux does not support KDE X11; use Anland Wayland instead." >&2
     exit 1
 fi
 if [[ "$desktop" == kde-mobile && "$backend" != anland-wayland ]]; then
-    echo "不支持的桌面与显示后端组合：$desktop/$backend" >&2
+    echo "Unsupported desktop and display backend combination: $desktop/$backend" >&2
     exit 1
 fi
 if [[ "$desktop" == gnome && "$backend" != anland-wayland ]]; then
-    echo "不支持的桌面与显示后端组合：$desktop/$backend" >&2
+    echo "Unsupported desktop and display backend combination: $desktop/$backend" >&2
     exit 1
 fi
 if [[ "$desktop" == anland-next && "$backend" != anland-wayland ]]; then
-    echo "不支持的桌面与显示后端组合：$desktop/$backend" >&2
+    echo "Unsupported desktop and display backend combination: $desktop/$backend" >&2
     exit 1
 fi
 if [[ "$desktop" =~ ^(niri|hyprland|mango|denial)$ && "$backend" != anland-wayland ]]; then
-    echo "不支持的桌面与显示后端组合：$desktop/$backend" >&2
+    echo "Unsupported desktop and display backend combination: $desktop/$backend" >&2
     exit 1
 fi
 
@@ -112,10 +112,10 @@ DISPLAY_BACKEND=$backend
 EOF
 chmod 0644 "$config"
 
-# 桌面专属环境必须在 Dockerfile 完成 /etc/environment 后配置。
+# Desktop-specific environment must be configured after the Dockerfile has finished /etc/environment.
 if [[ "$desktop" != none ]]; then
     profile="$profile_dir/$desktop.sh"
-    [[ -x "$profile" ]] || { echo "桌面配置脚本不存在或不可执行：$profile" >&2; exit 1; }
+    [[ -x "$profile" ]] || { echo "Desktop configuration script does not exist or is not executable: $profile" >&2; exit 1; }
     ROOTFS_DIR="$rootfs" DROIDSPACES_DESKTOP="$desktop" "$profile" configure-environment "$backend"
 fi
 
@@ -136,7 +136,7 @@ if [[ -z "$rootfs" ]]; then
 fi
 
 if [[ "$desktop" == none ]]; then
-    [[ "$autostart" == false ]] || { echo "桌面为 none 时不能启用自动启动" >&2; exit 1; }
+    [[ "$autostart" == false ]] || { echo "Autostart cannot be enabled when the desktop is none" >&2; exit 1; }
     exit 0
 fi
 

@@ -28,7 +28,7 @@ configure_environment() {
     )
 
     [[ "$backend" == anland-wayland ]] || {
-        echo "$desktop 显示后端无效：$backend" >&2
+        echo "Unsupported $desktop display backend: $backend" >&2
         return 1
     }
     assignments+=("XDG_CURRENT_DESKTOP=$xdg_desktop" "XDG_SESSION_DESKTOP=$xdg_desktop")
@@ -74,12 +74,12 @@ install_profile() {
         debian:13*|ubuntu:26.04*) install_minimal_deb ;;
         fedora:43*|fedora:44*) install_minimal_fedora ;;
         arch:*|archarm:*|archlinux:*) install_niri_arch ;;
-        *) echo "$desktop 不支持当前发行版：$ID $VERSION_ID" >&2; return 1 ;;
+        *) echo "$desktop does not support this distribution: $ID $VERSION_ID" >&2; return 1 ;;
     esac
 }
 
 case "${1:-install}" in
     install) install_profile ;;
     configure-environment) configure_environment "${2:-}" ;;
-    *) echo "$desktop profile 操作无效：$1" >&2; exit 1 ;;
+    *) echo "Invalid $desktop profile operation: $1" >&2; exit 1 ;;
 esac
