@@ -76,8 +76,23 @@ deliberately absent from the capability matrix. Adding it needs patched KWin/Mut
 Fedora 45, which is a separate project spanning `SuperTurtleDev/anland` and
 `droidspaces-package`.
 
-Ubuntu 26.10 is not added: it is an interim release with nine months of support, and Ubuntu
-26.04 LTS is already covered. Revisit it only if there is a reason to.
+Ubuntu 26.10 is deliberately not added, decided with the maintainer: it is an interim release
+with nine months of support while Ubuntu 26.04 LTS is already covered with both Mesa and
+Anland packages. Ubuntu targets stay at 24.04 and 26.04.
+
+### Fedora 45 Anland status
+
+The decisive check has been run: the KWin patch from the `Fedora44_v5` recipe applies to the
+KWin 6.8.2 source that Fedora 45 ships (`patch --dry-run` succeeds, with offsets). Fedora 44
+and Fedora 45 carry the same KWin version, which is why the patch set transfers. The Xwayland
+patch in that recipe is a 31-byte stub rather than a real patch, and Xwayland is only rebuilt
+when the recipe opts in, so it does not block anything.
+
+What remains for Fedora 45 Wayland support is packaging, not patching: add a
+`producers/kde/Fedora45_v5` recipe in a fork of `SuperTurtleDev/anland` (the Fedora 44 recipe
+with the version gate changed to 45), build the patched KWin for Fedora 45, publish it as a
+`fedora45` asset in `anland-kde-packages`, and only then add Fedora 45 to the Wayland lists in
+`scripts/lib/desktop-config.sh`. Until that lands, Fedora 45 stays X11-only on purpose.
 
 ## Pinned versions
 
